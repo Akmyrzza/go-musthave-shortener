@@ -25,10 +25,10 @@ func (h *Handler) CreateID(ctx *gin.Context) {
 	}
 
 	id := h.Service.CreateID(string(reqBody))
-	resId := "http://" + ctx.Request.Host + ctx.Request.RequestURI + id
+	resultString := "http://" + ctx.Request.Host + ctx.Request.RequestURI + id
 
 	ctx.Header("Content-Type", "text/plain")
-	ctx.String(http.StatusCreated, resId)
+	ctx.String(http.StatusCreated, resultString)
 }
 
 func (h *Handler) GetURL(ctx *gin.Context) {
