@@ -61,6 +61,7 @@ func TestHandler_createID(t *testing.T) {
 			testHandler.createID(recorder, request)
 
 			result := recorder.Result()
+			defer result.Body.Close()
 
 			assert.Equal(t, test.want.code, result.StatusCode)
 			assert.Equal(t, test.want.contentType, result.Header.Get("Content-Type"))
@@ -129,6 +130,7 @@ func TestHandler_getURL(t *testing.T) {
 			testHandler.getURL(recorderGet, requestGet)
 
 			resultGet := recorderGet.Result()
+			defer resultGet.Body.Close()
 
 			assert.Equal(t, test.want.code, resultGet.StatusCode)
 			assert.Equal(t, test.want.location, resultGet.Header.Get("Location"))
