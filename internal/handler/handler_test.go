@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/akmyrzza/go-musthave-shortener/internal/repository/local"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -12,11 +13,13 @@ import (
 	"testing"
 )
 
-func TestHandler_createID(t *testing.T) {
-
+func TestHandler_CreateID(t *testing.T) {
 	testRepository := local.NewLocalRepository()
 	testService := service.NewServiceURL(testRepository)
 	testHandler := NewHandler(testService)
+
+	testRouter := gin.Default()
+	testRouter.POST("/", testHandler.CreateID)
 
 	type want struct {
 		code        int
@@ -58,7 +61,8 @@ func TestHandler_createID(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(test.url))
 			recorder := httptest.NewRecorder()
-			testHandler.createID(recorder, request)
+
+			testRouter.ServeHTTP(recorder, request)
 
 			result := recorder.Result()
 			defer result.Body.Close()
@@ -69,10 +73,14 @@ func TestHandler_createID(t *testing.T) {
 	}
 }
 
-func TestHandler_getURL(t *testing.T) {
+func TestHandler_GetURL(t *testing.T) {
 	testRepository := local.NewLocalRepository()
 	testService := service.NewServiceURL(testRepository)
 	testHandler := NewHandler(testService)
+	testRouter := gin.Default()
+
+	testRouter.POST("/", testHandler.CreateID)
+	testRouter.GET("/:id", testHandler.GetURL)
 
 	type want struct {
 		code     int
@@ -114,7 +122,8 @@ func TestHandler_getURL(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(test.url))
 			recorder := httptest.NewRecorder()
-			testHandler.createID(recorder, request)
+
+			testRouter.ServeHTTP(recorder, request)
 
 			result := recorder.Result()
 
@@ -127,7 +136,8 @@ func TestHandler_getURL(t *testing.T) {
 
 			requestGet := httptest.NewRequest(http.MethodGet, "/"+id, nil)
 			recorderGet := httptest.NewRecorder()
-			testHandler.getURL(recorderGet, requestGet)
+
+			testRouter.ServeHTTP(recorderGet, requestGet)
 
 			resultGet := recorderGet.Result()
 			defer resultGet.Body.Close()
@@ -136,5 +146,4 @@ func TestHandler_getURL(t *testing.T) {
 			assert.Equal(t, test.want.location, resultGet.Header.Get("Location"))
 		})
 	}
-
 }

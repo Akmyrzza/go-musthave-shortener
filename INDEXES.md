@@ -33,3 +33,27 @@
 [Ilija Eftimov | Testing in Go: go test](https://ieftimov.com/posts/testing-in-go-go-test/) — о тестировании в Go.
 
 [YouTube | Unit testing HTTP servers](https://www.youtube.com/watch?v=hVFEV-ieeew) — выпуск “justforfunc: Programming in Go” о тестировании сервера.
+
+### Использование HTTP-клиента
+
+[go.dev/net/http/cookiejar](https://pkg.go.dev/net/http/cookiejar) — документация пакета cookiejar.
+
+[go.dev | Type Client](https://pkg.go.dev/net/http#Client) — описание HTTP-клиента.
+
+[Golang By Example | Cookies in Go](https://golangbyexample.com/cookies-golang/) — о куках в Go.
+
+### Выбор HTTP-библиотеки
+
+[go.dev | resty](https://pkg.go.dev/github.com/go-resty/resty/v2) — документация пакета resty.
+
+[go.dev | chi](https://pkg.go.dev/github.com/go-chi/chi/v5) — документация роутера chi.
+
+[go.dev | middleware](https://pkg.go.dev/github.com/go-chi/chi/middleware) — список доступных middleware для роутера chi.
+
+[GitHub | HTTP clients](https://github.com/avelino/awesome-go#http-clients) — список клиентских пакетов на Awesome Go.
+
+[GitHub | Routers](https://github.com/avelino/awesome-go#routers) — список серверных пакетов на Awesome Go.
+
+[JSONPlaceholder](https://jsonplaceholder.typicode.com) — бесплатный тестовый API.
+
+

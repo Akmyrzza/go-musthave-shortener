@@ -2,9 +2,9 @@ package handler
 
 import (
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
+	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-	"strings"
 )
 
 type Handler struct {
@@ -17,39 +17,34 @@ func NewHandler(s service.Service) *Handler {
 	}
 }
 
-func (h *Handler) HandleURL(res http.ResponseWriter, req *http.Request) {
-	if req.Method == http.MethodPost {
-		h.createID(res, req)
-	} else if req.Method == http.MethodGet {
-		h.getURL(res, req)
-	} else {
-		http.Error(res, "wrong method", http.StatusMethodNotAllowed)
-		return
-	}
-}
-
-func (h *Handler) createID(res http.ResponseWriter, req *http.Request) {
-	reqBody, err := io.ReadAll(req.Body)
+func (h *Handler) CreateID(ctx *gin.Context) {
+	reqBody, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
-		http.Error(res, "bad body", http.StatusBadRequest)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "bad request body"})
 		return
 	}
 
 	id := h.Service.CreateID(string(reqBody))
+	resId := "http://" + ctx.Request.Host + ctx.Request.RequestURI + id
 
-	res.Header().Add("Content-Type", "text/plain")
-	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte("http://" + req.Host + req.RequestURI + id))
+	ctx.Header("Content-Type", "text/plain")
+	ctx.String(http.StatusCreated, resId)
 }
 
-func (h *Handler) getURL(res http.ResponseWriter, req *http.Request) {
-	id := strings.TrimPrefix(req.RequestURI, "/")
+func (h *Handler) GetURL(ctx *gin.Context) {
+	id, exist := ctx.Params.Get("id")
+	if !exist {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "no id in params"})
+		return
+	}
 
 	originalURL, ok := h.Service.GetURL(id)
 	if !ok {
-		http.Error(res, "id not found", http.StatusBadRequest)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "id not found"})
+		return
 	}
 
-	res.Header().Set("Location", originalURL)
-	res.WriteHeader(http.StatusTemporaryRedirect)
+	ctx.Header("Location", originalURL)
+	ctx.Header("Content-Type", "text/plain")
+	ctx.JSON(http.StatusTemporaryRedirect, nil)
 }
