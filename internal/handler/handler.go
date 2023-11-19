@@ -37,6 +37,7 @@ func (h *Handler) createID(res http.ResponseWriter, req *http.Request) {
 
 	id := h.Service.CreateID(string(reqBody))
 
+	res.Header().Add("Content-Type", "text/plain")
 	res.WriteHeader(http.StatusCreated)
 	res.Write([]byte("http://" + req.Host + req.RequestURI + id))
 }

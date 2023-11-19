@@ -19,3 +19,17 @@
 [GitHub | Build web application with golang](https://github.com/astaxie/build-web-application-with-golang/blob/master/ru/preface.md) — о веб-приложениях от авторитетного Go-разработчика @astaxie, автора библиотеки beego.
 
 [IANA | HTTP Status Code Registry](https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml) — список кодов статуса.
+
+### Тестирование HTTP-приложения
+
+[go.dev/testing](https://pkg.go.dev/testing) — документация пакета testing.
+
+[go.dev/net/http/httptest](https://pkg.go.dev/net/http/httptest) — документация пакета httptest.
+
+[go.dev | Testing flags](https://pkg.go.dev/cmd/go#hdr-Testing_flags) — о команде go test и флагах.
+
+[GitHub | Testify — Thou Shalt Write Tests](https://github.com/stretchr/testify) — библиотека testify.
+
+[Ilija Eftimov | Testing in Go: go test](https://ieftimov.com/posts/testing-in-go-go-test/) — о тестировании в Go.
+
+[YouTube | Unit testing HTTP servers](https://www.youtube.com/watch?v=hVFEV-ieeew) — выпуск “justforfunc: Programming in Go” о тестировании сервера.
