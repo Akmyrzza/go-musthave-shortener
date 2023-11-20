@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -49,4 +50,27 @@ func (h *Handler) GetURL(ctx *gin.Context) {
 	ctx.Header("Location", originalURL)
 	ctx.Header("Content-Type", "text/plain")
 	ctx.JSON(http.StatusTemporaryRedirect, nil)
+}
+
+func (h *Handler) CreateIDJSON(ctx *gin.Context) {
+	reqBody, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "bad request body"})
+		return
+	}
+
+	stURL := struct {
+		URL string `json:"url"`
+	}{}
+
+	if err = json.Unmarshal(reqBody, &stURL); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "bad request body"})
+		return
+	}
+
+	id := h.Service.CreateID(stURL.URL)
+	resultString := h.BaseURL + "/" + id
+
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusCreated, gin.H{"result": resultString})
 }

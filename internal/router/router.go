@@ -14,6 +14,7 @@ func InitRouter(h *handler.Handler, l *zap.Logger) *gin.Engine {
 
 	router.POST("/", h.CreateID)
 	router.GET("/:id", h.GetURL)
+	router.POST("/api/shorten", h.CreateIDJSON)
 
 	return router
 }

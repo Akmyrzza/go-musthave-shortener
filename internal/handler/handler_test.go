@@ -1,12 +1,15 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"github.com/akmyrzza/go-musthave-shortener/internal/repository/local"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -144,6 +147,75 @@ func TestHandler_GetURL(t *testing.T) {
 
 			assert.Equal(t, test.want.code, resultGet.StatusCode)
 			assert.Equal(t, test.want.location, resultGet.Header.Get("Location"))
+		})
+	}
+}
+
+func TestHandler_CreateIDJSON(t *testing.T) {
+	testRepository := local.NewLocalRepository()
+	testService := service.NewServiceURL(testRepository)
+	testHandler := NewHandler(testService, "http://localhost:8080")
+
+	testRouter := gin.Default()
+	testRouter.POST("/api/shorten", testHandler.CreateIDJSON)
+
+	type want struct {
+		code        int
+		contentType string
+	}
+
+	type reqBody struct {
+		URL string `json:"url"`
+	}
+
+	tests := []struct {
+		name string
+		url  reqBody
+		want want
+	}{
+		{
+			name: "test #1",
+			url:  reqBody{URL: "www.google.com"},
+			want: want{
+				code:        201,
+				contentType: "application/json",
+			},
+		},
+		{
+			name: "test #2",
+			url:  reqBody{URL: "www.yandex.com"},
+			want: want{
+				code:        201,
+				contentType: "application/json",
+			},
+		},
+		{
+			name: "test #3",
+			url:  reqBody{URL: "www.netflix.com"},
+			want: want{
+				code:        201,
+				contentType: "application/json",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			reqBody, err := json.Marshal(test.url)
+			if err != nil {
+				log.Fatalf("error, request test body: %d", err)
+			}
+
+			request := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewBuffer(reqBody))
+			recorder := httptest.NewRecorder()
+
+			testRouter.ServeHTTP(recorder, request)
+
+			result := recorder.Result()
+			defer result.Body.Close()
+
+			assert.Equal(t, test.want.code, result.StatusCode)
+			assert.Equal(t, test.want.contentType, result.Header.Get("Content-Type"))
 		})
 	}
 }
