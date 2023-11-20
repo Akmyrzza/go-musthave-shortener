@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/akmyrzza/go-musthave-shortener/internal/config"
 	"github.com/akmyrzza/go-musthave-shortener/internal/handler"
+	"github.com/akmyrzza/go-musthave-shortener/internal/logger"
 	"github.com/akmyrzza/go-musthave-shortener/internal/repository/local"
 	"github.com/akmyrzza/go-musthave-shortener/internal/router"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
@@ -12,12 +13,13 @@ import (
 
 func Run(cfg *config.Config) {
 
+	newLogger := logger.InitLogger()
 	newRepository := local.NewLocalRepository()
 	newService := service.NewServiceURL(newRepository)
 	newHandler := handler.NewHandler(newService, cfg.BaseURL)
 
 	newServer := &http.Server{
-		Handler: router.InitRouter(newHandler),
+		Handler: router.InitRouter(newHandler, newLogger),
 		Addr:    cfg.ServerAddr,
 	}
 

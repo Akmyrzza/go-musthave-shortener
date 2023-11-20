@@ -1,5 +1,7 @@
 # Полезные ссылки с курса Yandex
 
+# Спринт 1
+
 ## Пакет net/http. Работа с HTTP
 
 ### Структура проекта
@@ -79,3 +81,20 @@
 [GitHub | caarlos0/env](https://github.com/caarlos0/env) — пакет caarlos0/env.
 
 [GitHub | kelseyhightower/envconfig](https://github.com/kelseyhightower/envconfig) — пакет kelseyhightower/envconfig.
+
+# Спринт 2
+
+## Пакет log. Логирование в приложении
+
+### Стандартные и сторонние пакеты для логирования
+
+[go.dev/log](https://pkg.go.dev/log) — документация пакета log.
+
+[go.dev/go.uber.org/zap](https://pkg.go.dev/go.uber.org/zap) — документация пакета zap.
+
+[GitHub | zap](https://github.com/uber-go/zap) — пакет zap.
+
+[GitHub | logrus](https://github.com/Sirupsen/logrus) — пакет logrus.
+
+[GitHub | Awesome Go | Logging](https://github.com/avelino/awesome-go#logging) — библиотеки для логирования.
+
