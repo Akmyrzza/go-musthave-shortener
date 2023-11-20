@@ -9,11 +9,13 @@ import (
 
 type Handler struct {
 	Service service.Service
+	BaseURL string
 }
 
-func NewHandler(s service.Service) *Handler {
+func NewHandler(s service.Service, BaseURL string) *Handler {
 	return &Handler{
 		Service: s,
+		BaseURL: BaseURL,
 	}
 }
 
@@ -25,7 +27,7 @@ func (h *Handler) CreateID(ctx *gin.Context) {
 	}
 
 	id := h.Service.CreateID(string(reqBody))
-	resultString := "http://" + ctx.Request.Host + ctx.Request.RequestURI + id
+	resultString := h.BaseURL + id
 
 	ctx.Header("Content-Type", "text/plain")
 	ctx.String(http.StatusCreated, resultString)

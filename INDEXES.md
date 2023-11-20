@@ -56,4 +56,14 @@
 
 [JSONPlaceholder](https://jsonplaceholder.typicode.com) — бесплатный тестовый API.
 
+## Пакет flag. Чтение аргументов командной строки
 
+### Аргументы командной строки
+
+[go.dev/flag](https://pkg.go.dev/flag) — документация пакета flag.
+
+[GitHub | Cobra](https://github.com/spf13/cobra) — о библиотеке Cobra.
+
+[GitHub | pflag](https://github.com/spf13/pflag) — о пакете pflag.
+
+[GNU.org | Program Argument Syntax Conventions](https://www.gnu.org/software/libc/manual/html_node/Argument-Syntax.html) — рекомендации GNU.

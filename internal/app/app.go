@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/akmyrzza/go-musthave-shortener/internal/config"
 	"github.com/akmyrzza/go-musthave-shortener/internal/handler"
 	"github.com/akmyrzza/go-musthave-shortener/internal/repository/local"
 	"github.com/akmyrzza/go-musthave-shortener/internal/router"
@@ -9,14 +10,18 @@ import (
 	"net/http"
 )
 
-func Run() {
+func Run(cfg *config.Config) {
 
 	newRepository := local.NewLocalRepository()
 	newService := service.NewServiceURL(newRepository)
-	newHandler := handler.NewHandler(newService)
-	newRouter := router.InitRouter(newHandler)
+	newHandler := handler.NewHandler(newService, cfg.BaseURL)
 
-	if err := http.ListenAndServe("localhost:8080", newRouter); err != nil {
+	newServer := &http.Server{
+		Handler: router.InitRouter(newHandler),
+		Addr:    cfg.ServerAddr,
+	}
+
+	if err := newServer.ListenAndServe(); err != nil {
 		log.Fatalf("error, runnnig http server: %d", err)
 	}
 }
