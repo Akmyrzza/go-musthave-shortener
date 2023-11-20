@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"github.com/akmyrzza/go-musthave-shortener/internal/config"
 	"github.com/akmyrzza/go-musthave-shortener/internal/repository/local"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"github.com/gin-gonic/gin"
@@ -15,10 +14,9 @@ import (
 )
 
 func TestHandler_CreateID(t *testing.T) {
-	cfg, _ := config.InitConfig()
 	testRepository := local.NewLocalRepository()
 	testService := service.NewServiceURL(testRepository)
-	testHandler := NewHandler(testService, cfg.BaseURL)
+	testHandler := NewHandler(testService, "http://localhost:8080")
 
 	testRouter := gin.Default()
 	testRouter.POST("/", testHandler.CreateID)
@@ -76,10 +74,9 @@ func TestHandler_CreateID(t *testing.T) {
 }
 
 func TestHandler_GetURL(t *testing.T) {
-	cfg, _ := config.InitConfig()
 	testRepository := local.NewLocalRepository()
 	testService := service.NewServiceURL(testRepository)
-	testHandler := NewHandler(testService, cfg.BaseURL)
+	testHandler := NewHandler(testService, "http://localhost:8080")
 	testRouter := gin.Default()
 
 	testRouter.POST("/", testHandler.CreateID)
@@ -135,7 +132,7 @@ func TestHandler_GetURL(t *testing.T) {
 
 			require.NoError(t, err)
 
-			id := strings.TrimPrefix(string(resBody), cfg.BaseURL+"/")
+			id := strings.TrimPrefix(string(resBody), "http://localhost:8080"+"/")
 
 			requestGet := httptest.NewRequest(http.MethodGet, "/"+id, nil)
 			recorderGet := httptest.NewRecorder()
