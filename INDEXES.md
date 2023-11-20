@@ -67,3 +67,15 @@
 [GitHub | pflag](https://github.com/spf13/pflag) — о пакете pflag.
 
 [GNU.org | Program Argument Syntax Conventions](https://www.gnu.org/software/libc/manual/html_node/Argument-Syntax.html) — рекомендации GNU.
+
+## Пакет os. Получение переменных окружения
+
+### Переменные окружения
+
+[go.dev/os](https://pkg.go.dev/os) — документация пакета os.
+
+[Losst | Переменные окружения в Linux](https://losst.pro/peremennye-okruzheniya-v-linux) — подробная статья о переменных окружения.
+
+[GitHub | caarlos0/env](https://github.com/caarlos0/env) — пакет caarlos0/env.
+
+[GitHub | kelseyhightower/envconfig](https://github.com/kelseyhightower/envconfig) — пакет kelseyhightower/envconfig.
