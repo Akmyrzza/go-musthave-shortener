@@ -98,3 +98,63 @@
 
 [GitHub | Awesome Go | Logging](https://github.com/avelino/awesome-go#logging) — библиотеки для логирования.
 
+## Пакет encoding. Сериализация и десериализация данных.
+
+### Основы REST API
+
+[Хабр | Архитектура REST](https://habr.com/ru/articles/38730/) — статья о стиле REST.
+
+[Хабр | Hypermedia](https://habr.com/ru/companies/aligntechnology/articles/281206/) — то, без чего ваше API не совсем REST — подробнее о гиперссылках в сообщениях.
+
+[REST API Tutorial](https://restapitutorial.com/resources.html) — лучшие практики в разработке RESTful-сервисов.
+
+### Структурные теги
+
+[go.dev/reflect](https://pkg.go.dev/reflect) — документация пакета reflect.
+
+[go.dev/encoding/json](https://pkg.go.dev/encoding/json) — документация пакета json, который использует структурные теги для определения параметров JSON-преобразования.
+
+[GitHub | Gorm](https://github.com/jinzhu/gorm) — ORM-библиотека, которая использует структурные теги для указания SQL-связей.
+
+[GitHub | Govalidator](https://github.com/asaskevich/govalidator) — пакет для валидации значений полей на основе описания структурных тегов.
+
+### Стандартные сериализаторы: JSON
+
+[go.dev/encoding/json](https://pkg.go.dev/encoding/json) — документация пакета encoding/json.
+
+[Developer 2.0 | JSON in Go](https://developer20.com/json/) — статья о работе с JSON в Go.
+
+### Стандартные сериализаторы: XML и gob
+
+[go.dev/encoding/xml](https://pkg.go.dev/encoding/xml) — документация пакета encoding/xml.
+
+[go.dev/encoding/xml#Token](https://pkg.go.dev/encoding/xml#Token) — описание XML-токена.
+
+[go.dev/encoding/gob](https://pkg.go.dev/encoding/gob) — документация пакета encoding/gob.
+
+[XMLBeans | Understanding XML Tokens](https://xmlbeans.apache.org/docs/3.0.0/guide/conUnderstandingXMLTokens.html) — статья о том, что такое XML-токен на примере Java.
+
+### Сторонние сериализаторы
+
+[go-yaml](https://pkg.go.dev/gopkg.in/yaml.v3) — пакет для работы с YAML-форматом.
+
+[yaml.org](https://yaml.org/spec/1.2.2/) — спецификация формата YAML.
+
+[toml.io](https://toml.io/en/) — спецификация формата TOML.
+
+[go-toml](https://github.com/pelletier/go-toml) — пакет для работы с TOML-форматом.
+
+[easyjson](https://github.com/mailru/easyjson) — пакет для генерации кода работы с JSON-форматом без использования рефлексии.
+
+[MessagePack](https://msgpack.org) — описание и примеры использования бинарного формата MessagePack.
+
+[msgp](https://github.com/tinylib/msgp) — реализация формата MessagePack для Go.
+
+[Protocol Buffers](https://protobuf.dev) — описание формата Protocol Buffers.
+
+[proto3](https://protobuf.dev/programming-guides/proto3/) — спецификация формата proto3.
+
+[gRPC](https://grpc.io) — описание фреймворка gRPC для реализации RPC-протокола общения между приложениями с форматом данных Protocol Buffers.
+
+[protobuf-go](https://github.com/protocolbuffers/protobuf-go) — пакет для работы с Protocol Buffers для Go.
+
