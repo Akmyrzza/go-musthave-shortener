@@ -27,7 +27,7 @@ func (h *Handler) CreateID(ctx *gin.Context) {
 	}
 
 	id := h.Service.CreateID(string(reqBody))
-	resultString := h.BaseURL + id
+	resultString := h.BaseURL + "/" + id
 
 	ctx.Header("Content-Type", "text/plain")
 	ctx.String(http.StatusCreated, resultString)
