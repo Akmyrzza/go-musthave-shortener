@@ -2,10 +2,10 @@ package app
 
 import (
 	"github.com/akmyrzza/go-musthave-shortener/internal/config"
-	"github.com/akmyrzza/go-musthave-shortener/internal/handler"
-	"github.com/akmyrzza/go-musthave-shortener/internal/logger"
 	"github.com/akmyrzza/go-musthave-shortener/internal/repository/local"
-	"github.com/akmyrzza/go-musthave-shortener/internal/router"
+	"github.com/akmyrzza/go-musthave-shortener/internal/server/handler"
+	"github.com/akmyrzza/go-musthave-shortener/internal/server/router"
+	"github.com/akmyrzza/go-musthave-shortener/internal/server/util/logger"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"log"
 	"net/http"

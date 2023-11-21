@@ -158,3 +158,22 @@
 
 [protobuf-go](https://github.com/protocolbuffers/protobuf-go) — пакет для работы с Protocol Buffers для Go.
 
+## Пакет compress. Сжатие данных
+
+### Оптимизация передачи данных
+
+[Хабр | Интерфейсные типы io.Reader и io.Writer](https://habr.com/ru/articles/306914/) — статья об интерфейсных типах.
+
+[Echo | Gzip Middleware](https://echo.labstack.com/docs/middleware/gzip) — пример реализации gzip в HTTP-сервере.
+
+[GitHub | Zstandard](https://facebook.github.io/zstd/) — алгоритм сжатия Zstandard.
+
+[GitHub | NYTimes/gziphandler](https://pkg.go.dev/github.com/NYTimes/gziphandler) — пакет gziphandler.
+
+[GitHub | mholt/archiver](https://github.com/mholt/archiver) — пакет mholt/archiver для работы с архивами.
+
+[GitHub | Squash Compression Benchmark](https://quixdb.github.io/squash-benchmark/) — Squash Compression Benchmark.
+
+[MDN Web Docs | Accept-Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Encoding) — спецификация заголовка Accept-Encoding.
+
+[MDN Web Docs | Content-Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding) — спецификация заголовка Content-Encoding.
