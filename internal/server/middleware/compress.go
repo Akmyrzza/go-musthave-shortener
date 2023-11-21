@@ -32,28 +32,27 @@ func CompressRequest() gin.HandlerFunc {
 				ctx.Header("Content-Encoding", "gzip")
 				ctx.Writer = &gzipWriter{ctx.Writer, compressWriter}
 			}
-
-			contentEncodings := ctx.Request.Header.Values("Content-Encoding")
-
-			if foundHeader(contentEncodings) {
-				compressReader, err := gzip.NewReader(ctx.Request.Body)
-				if err != nil {
-					log.Fatalf("error: new reader: %d", err)
-					return
-				}
-				defer compressReader.Close()
-
-				body, err := io.ReadAll(compressReader)
-				if err != nil {
-					log.Fatalf("error: read body: %d", err)
-					return
-				}
-
-				ctx.Request.Body = io.NopCloser(bytes.NewReader(body))
-				ctx.Request.ContentLength = int64(len(body))
-			}
 		}
 
+		contentEncodings := ctx.Request.Header.Values("Content-Encoding")
+
+		if foundHeader(contentEncodings) {
+			compressReader, err := gzip.NewReader(ctx.Request.Body)
+			if err != nil {
+				log.Fatalf("error: new reader: %d", err)
+				return
+			}
+			defer compressReader.Close()
+
+			body, err := io.ReadAll(compressReader)
+			if err != nil {
+				log.Fatalf("error: read body: %d", err)
+				return
+			}
+
+			ctx.Request.Body = io.NopCloser(bytes.NewReader(body))
+			ctx.Request.ContentLength = int64(len(body))
+		}
 		ctx.Next()
 	}
 }
