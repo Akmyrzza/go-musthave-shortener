@@ -13,6 +13,10 @@ type gzipWriter struct {
 	io.Writer
 }
 
+func (w gzipWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
+}
+
 func CompressRequest() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
