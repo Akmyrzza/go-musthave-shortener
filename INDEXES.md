@@ -177,3 +177,13 @@
 [MDN Web Docs | Accept-Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Encoding) — спецификация заголовка Accept-Encoding.
 
 [MDN Web Docs | Content-Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding) — спецификация заголовка Content-Encoding.
+
+## Пакет os. Операции с файлами
+
+### Чтение и запись в файл
+
+[go.dev/os](https://pkg.go.dev/os) — документация пакета os.
+
+[go.dev/bufio](https://pkg.go.dev/bufio) — документация пакета bufio.
+
+[The Linux Foundation | Classic SysAdmin: Understanding Linux File Permissions](https://www.linuxfoundation.org/blog/blog/classic-sysadmin-understanding-linux-file-permissions) — модификаторы доступа в Linux.

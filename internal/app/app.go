@@ -14,7 +14,7 @@ import (
 func Run(cfg *config.Config) {
 
 	newLogger := logger.InitLogger()
-	newRepository := local.NewLocalRepository()
+	newRepository := local.NewLocalRepository(cfg.FilePath)
 	newService := service.NewServiceURL(newRepository)
 	newHandler := handler.NewHandler(newService, cfg.BaseURL)
 
