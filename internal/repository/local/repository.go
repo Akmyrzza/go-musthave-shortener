@@ -76,6 +76,10 @@ func (s *LocalRepository) CreateID(shortURL, originalURL string) {
 
 	data = append(data, '\n')
 	_, err = s.file.Write(data)
+	if err != nil {
+		log.Fatalf("error: writing to json file: %d", err)
+		return
+	}
 }
 
 func (s *LocalRepository) GetURL(id string) (string, bool) {
