@@ -17,7 +17,7 @@ import (
 )
 
 func TestHandler_CreateID(t *testing.T) {
-	testRepository := local.NewLocalRepository()
+	testRepository := local.NewLocalRepository("")
 	testService := service.NewServiceURL(testRepository)
 	testHandler := NewHandler(testService, "http://localhost:8080")
 
@@ -77,7 +77,7 @@ func TestHandler_CreateID(t *testing.T) {
 }
 
 func TestHandler_GetURL(t *testing.T) {
-	testRepository := local.NewLocalRepository()
+	testRepository := local.NewLocalRepository("")
 	testService := service.NewServiceURL(testRepository)
 	testHandler := NewHandler(testService, "http://localhost:8080")
 	testRouter := gin.Default()
@@ -152,7 +152,7 @@ func TestHandler_GetURL(t *testing.T) {
 }
 
 func TestHandler_CreateIDJSON(t *testing.T) {
-	testRepository := local.NewLocalRepository()
+	testRepository := local.NewLocalRepository("")
 	testService := service.NewServiceURL(testRepository)
 	testHandler := NewHandler(testService, "http://localhost:8080")
 
