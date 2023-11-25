@@ -44,7 +44,10 @@ func NewLocalRepository(filePath string) (*LocalRepository, error) {
 		}
 
 		dataURL[tmpRecord.ShortURL] = tmpRecord.OriginalURL
-		maxRecord, _ = strconv.Atoi(tmpRecord.ID)
+		maxRecord, err = strconv.Atoi(tmpRecord.ID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &LocalRepository{
