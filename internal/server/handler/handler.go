@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
+	"net/url"
 )
 
 type Handler struct {
@@ -69,7 +70,10 @@ func (h *Handler) CreateIDJSON(ctx *gin.Context) {
 	}
 
 	id := h.Service.CreateID(stURL.URL)
-	resultString := h.BaseURL + "/" + id
+	resultString, err := url.JoinPath(h.BaseURL, id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "url joining"})
+	}
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusCreated, gin.H{"result": resultString})
