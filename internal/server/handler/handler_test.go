@@ -203,7 +203,7 @@ func TestHandler_CreateIDJSON(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			reqBody, err := json.Marshal(test.url)
 			if err != nil {
-				log.Fatalf("error, request test body: %d", err)
+				log.Fatalf("error, request test body: %w", err)
 			}
 
 			request := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewBuffer(reqBody))

@@ -8,7 +8,7 @@ import (
 func InitLogger() *zap.Logger {
 	logger, err := zap.NewProduction()
 	if err != nil {
-		log.Fatalf("error: initializing logger: %d", err)
+		log.Fatalf("error: initializing logger: %w", err)
 	}
 
 	defer logger.Sync()

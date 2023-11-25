@@ -24,6 +24,6 @@ func Run(cfg *config.Config) {
 	}
 
 	if err := newServer.ListenAndServe(); err != nil {
-		log.Fatalf("error, runnnig http server: %d", err)
+		log.Fatalf("error, runnnig http server: %w", err)
 	}
 }

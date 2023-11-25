@@ -39,14 +39,14 @@ func CompressRequest() gin.HandlerFunc {
 		if foundHeader(contentEncodings) {
 			compressReader, err := gzip.NewReader(ctx.Request.Body)
 			if err != nil {
-				log.Fatalf("error: new reader: %d", err)
+				log.Fatalf("error: new reader: %w", err)
 				return
 			}
 			defer compressReader.Close()
 
 			body, err := io.ReadAll(compressReader)
 			if err != nil {
-				log.Fatalf("error: read body: %d", err)
+				log.Fatalf("error: read body: %w", err)
 				return
 			}
 

@@ -29,7 +29,7 @@ func NewLocalRepository(filePath string) *LocalRepository {
 	}
 	fileDB, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalf("error: opening db file: %d", err)
+		log.Fatalf("error: opening db file: %w", err)
 		return nil
 	}
 
@@ -70,14 +70,14 @@ func (s *LocalRepository) CreateID(shortURL, originalURL string) {
 
 	data, err := json.Marshal(&tmpRecord)
 	if err != nil {
-		log.Fatalf("error: reading from json: %d", err)
+		log.Fatalf("error: reading from json: %w", err)
 		return
 	}
 
 	data = append(data, '\n')
 	_, err = s.file.Write(data)
 	if err != nil {
-		log.Fatalf("error: writing to json file: %d", err)
+		log.Fatalf("error: writing to json file: %w", err)
 		return
 	}
 }
