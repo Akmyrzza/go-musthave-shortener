@@ -5,6 +5,11 @@ import (
 	"math/rand"
 )
 
+type Service interface {
+	CreateID(originalURL string) string
+	GetURL(id string) (string, bool)
+}
+
 type ServiceURL struct {
 	Repository repository.Repository
 }
@@ -15,17 +20,13 @@ func NewServiceURL(r repository.Repository) *ServiceURL {
 	}
 }
 func (s *ServiceURL) CreateID(originalURL string) string {
-	id := ""
 	for {
-		id = randString()
-		_, ok := s.Repository.GetURL(id)
-		if !ok {
-			s.Repository.CreateID(id, originalURL)
-			break
+		id := randString()
+		found := s.Repository.CreateID(id, originalURL)
+		if found == nil {
+			return id
 		}
 	}
-
-	return id
 }
 
 func (s *ServiceURL) GetURL(id string) (string, bool) {

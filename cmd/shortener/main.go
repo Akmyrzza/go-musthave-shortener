@@ -9,10 +9,10 @@ import (
 func main() {
 	cfg, err := config.InitConfig()
 	if err != nil {
-		log.Fatalf("error: initializing config: %w", err)
+		log.Fatalf("error: initializing config: %d", err)
 	}
 
 	if err := app.Run(cfg); err != nil {
-		log.Fatalf("err: %w", err)
+		log.Fatalf("err: %d", err)
 	}
 }

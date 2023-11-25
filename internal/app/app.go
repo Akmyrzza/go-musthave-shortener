@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/akmyrzza/go-musthave-shortener/internal/config"
-	"github.com/akmyrzza/go-musthave-shortener/internal/repository/local"
+	"github.com/akmyrzza/go-musthave-shortener/internal/repository"
 	"github.com/akmyrzza/go-musthave-shortener/internal/server/handler"
 	"github.com/akmyrzza/go-musthave-shortener/internal/server/router"
 	"github.com/akmyrzza/go-musthave-shortener/internal/server/util/logger"
@@ -13,7 +13,7 @@ import (
 func Run(cfg *config.Config) error {
 
 	lg := logger.InitLogger()
-	repo, err := local.NewLocalRepository(cfg.FilePath)
+	repo, err := repository.NewLocalRepository(cfg.FilePath)
 	if err != nil {
 		return err
 	}

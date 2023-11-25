@@ -1,11 +1,17 @@
-package local
+package repository
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"os"
 	"strconv"
 )
+
+type Repository interface {
+	CreateID(id, originalURL string) error
+	GetURL(id string) (string, bool)
+}
 
 type LocalRepository struct {
 	file      *os.File
@@ -57,12 +63,17 @@ func NewLocalRepository(filePath string) (*LocalRepository, error) {
 	}, nil
 }
 
-func (s *LocalRepository) CreateID(shortURL, originalURL string) {
+func (s *LocalRepository) CreateID(shortURL, originalURL string) error {
+	_, found := s.dataURL[shortURL]
+	if found {
+		return errors.New("this id already exist")
+	}
+
 	s.dataURL[shortURL] = originalURL
 	s.maxRecord = s.maxRecord + 1
 
 	if s.file == nil {
-		return
+		return nil
 	}
 
 	var tmpRecord tmpStorage
@@ -72,16 +83,16 @@ func (s *LocalRepository) CreateID(shortURL, originalURL string) {
 
 	data, err := json.Marshal(&tmpRecord)
 	if err != nil {
-		log.Fatalf("error: reading from json: %w", err)
-		return
+		log.Fatalf("error: reading from json: %d", err)
 	}
 
 	data = append(data, '\n')
 	_, err = s.file.Write(data)
 	if err != nil {
-		log.Fatalf("error: writing to json file: %w", err)
-		return
+		log.Fatalf("error: writing to json file: %d", err)
 	}
+
+	return nil
 }
 
 func (s *LocalRepository) GetURL(id string) (string, bool) {

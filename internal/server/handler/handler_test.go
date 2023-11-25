@@ -3,7 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/akmyrzza/go-musthave-shortener/internal/repository/local"
+	"github.com/akmyrzza/go-musthave-shortener/internal/repository"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +17,10 @@ import (
 )
 
 func TestHandler_CreateID(t *testing.T) {
-	testRepository := local.NewLocalRepository("")
+	testRepository, err := repository.NewLocalRepository("")
+	if err != nil {
+		log.Fatalf("error in repo: %d", err)
+	}
 	testService := service.NewServiceURL(testRepository)
 	testHandler := NewHandler(testService, "http://localhost:8080")
 
@@ -77,7 +80,10 @@ func TestHandler_CreateID(t *testing.T) {
 }
 
 func TestHandler_GetURL(t *testing.T) {
-	testRepository := local.NewLocalRepository("")
+	testRepository, err := repository.NewLocalRepository("")
+	if err != nil {
+		log.Fatalf("error in repo: %d", err)
+	}
 	testService := service.NewServiceURL(testRepository)
 	testHandler := NewHandler(testService, "http://localhost:8080")
 	testRouter := gin.Default()
@@ -152,7 +158,10 @@ func TestHandler_GetURL(t *testing.T) {
 }
 
 func TestHandler_CreateIDJSON(t *testing.T) {
-	testRepository := local.NewLocalRepository("")
+	testRepository, err := repository.NewLocalRepository("")
+	if err != nil {
+		log.Fatalf("error in repo: %d", err)
+	}
 	testService := service.NewServiceURL(testRepository)
 	testHandler := NewHandler(testService, "http://localhost:8080")
 
@@ -203,7 +212,7 @@ func TestHandler_CreateIDJSON(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			reqBody, err := json.Marshal(test.url)
 			if err != nil {
-				log.Fatalf("error, request test body: %w", err)
+				log.Fatalf("error, request test body: %d", err)
 			}
 
 			request := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewBuffer(reqBody))
