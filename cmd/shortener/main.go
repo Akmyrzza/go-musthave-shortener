@@ -12,5 +12,7 @@ func main() {
 		log.Fatalf("error: initializing config: %w", err)
 	}
 
-	app.Run(cfg)
+	if err := app.Run(cfg); err != nil {
+		log.Fatalf("err: %w", err)
+	}
 }

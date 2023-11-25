@@ -7,11 +7,10 @@ import (
 	"github.com/akmyrzza/go-musthave-shortener/internal/server/router"
 	"github.com/akmyrzza/go-musthave-shortener/internal/server/util/logger"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
-	"log"
 	"net/http"
 )
 
-func Run(cfg *config.Config) {
+func Run(cfg *config.Config) error {
 
 	newLogger := logger.InitLogger()
 	newRepository := local.NewLocalRepository(cfg.FilePath)
@@ -24,6 +23,8 @@ func Run(cfg *config.Config) {
 	}
 
 	if err := newServer.ListenAndServe(); err != nil {
-		log.Fatalf("error, runnnig http server: %w", err)
+		return err
 	}
+
+	return nil
 }
