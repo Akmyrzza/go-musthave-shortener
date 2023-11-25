@@ -13,7 +13,11 @@ import (
 func Run(cfg *config.Config) error {
 
 	lg := logger.InitLogger()
-	repo := local.NewLocalRepository(cfg.FilePath)
+	repo, err := local.NewLocalRepository(cfg.FilePath)
+	if err != nil {
+		return err
+	}
+
 	srv := service.NewServiceURL(repo)
 	hndlr := handler.NewHandler(srv, cfg.BaseURL)
 

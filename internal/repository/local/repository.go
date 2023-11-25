@@ -19,18 +19,17 @@ type TmpStorage struct {
 	OriginalURL string `json:"original_url"`
 }
 
-func NewLocalRepository(filePath string) *LocalRepository {
+func NewLocalRepository(filePath string) (*LocalRepository, error) {
 	if filePath == "" {
 		return &LocalRepository{
 			file:      nil,
 			dataURL:   make(map[string]string),
 			maxRecord: 0,
-		}
+		}, nil
 	}
 	fileDB, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalf("error: opening db file: %w", err)
-		return nil
+		return nil, err
 	}
 
 	newDecoder := json.NewDecoder(fileDB)
@@ -52,7 +51,7 @@ func NewLocalRepository(filePath string) *LocalRepository {
 		file:      fileDB,
 		dataURL:   dataURL,
 		maxRecord: maxRecord,
-	}
+	}, nil
 }
 
 func (s *LocalRepository) CreateID(shortURL, originalURL string) {
