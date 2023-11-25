@@ -12,13 +12,13 @@ import (
 
 func Run(cfg *config.Config) error {
 
-	newLogger := logger.InitLogger()
-	newRepository := local.NewLocalRepository(cfg.FilePath)
-	newService := service.NewServiceURL(newRepository)
-	newHandler := handler.NewHandler(newService, cfg.BaseURL)
+	lg := logger.InitLogger()
+	repo := local.NewLocalRepository(cfg.FilePath)
+	srv := service.NewServiceURL(repo)
+	hndlr := handler.NewHandler(srv, cfg.BaseURL)
 
 	newServer := &http.Server{
-		Handler: router.InitRouter(newHandler, newLogger),
+		Handler: router.InitRouter(hndlr, lg),
 		Addr:    cfg.ServerAddr,
 	}
 
