@@ -13,7 +13,7 @@ type LocalRepository struct {
 	maxRecord int
 }
 
-type TmpStorage struct {
+type tmpStorage struct {
 	ID          string `json:"uuid"`
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
@@ -37,7 +37,7 @@ func NewLocalRepository(filePath string) (*LocalRepository, error) {
 	maxRecord := 0
 
 	for {
-		var tmpRecord TmpStorage
+		var tmpRecord tmpStorage
 
 		if err := newDecoder.Decode(&tmpRecord); err != nil {
 			break
@@ -65,7 +65,7 @@ func (s *LocalRepository) CreateID(shortURL, originalURL string) {
 		return
 	}
 
-	var tmpRecord TmpStorage
+	var tmpRecord tmpStorage
 	tmpRecord.ID = strconv.Itoa(s.maxRecord)
 	tmpRecord.ShortURL = shortURL
 	tmpRecord.OriginalURL = originalURL
