@@ -76,7 +76,7 @@ func (s *LocalRepository) CreateID(shortURL, originalURL string) error {
 	s.dataURL[shortURL] = originalURL
 	s.maxRecord = s.maxRecord + 1
 
-	if s.useFile == false {
+	if !s.useFile {
 		return nil
 	}
 
