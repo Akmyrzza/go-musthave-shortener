@@ -1,20 +1,19 @@
 package service
 
 import (
-	"github.com/akmyrzza/go-musthave-shortener/internal/repository"
 	"math/rand"
 )
 
-type Service interface {
-	CreateID(originalURL string) string
+type Repository interface {
+	CreateID(id, originalURL string) error
 	GetURL(id string) (string, bool)
 }
 
 type ServiceURL struct {
-	Repository repository.Repository
+	Repository Repository
 }
 
-func NewServiceURL(r repository.Repository) *ServiceURL {
+func NewServiceURL(r Repository) *ServiceURL {
 	return &ServiceURL{
 		Repository: r,
 	}

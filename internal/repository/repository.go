@@ -3,18 +3,15 @@ package repository
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 	"os"
 	"strconv"
 )
 
-type Repository interface {
-	CreateID(id, originalURL string) error
-	GetURL(id string) (string, bool)
-}
-
 type LocalRepository struct {
 	file      *os.File
+	useFile   bool
 	dataURL   map[string]string
 	maxRecord int
 }
@@ -29,10 +26,12 @@ func NewLocalRepository(filePath string) (*LocalRepository, error) {
 	if filePath == "" {
 		return &LocalRepository{
 			file:      nil,
+			useFile:   false,
 			dataURL:   make(map[string]string),
 			maxRecord: 0,
 		}, nil
 	}
+
 	fileDB, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
 	if err != nil {
 		return nil, err
@@ -46,7 +45,11 @@ func NewLocalRepository(filePath string) (*LocalRepository, error) {
 		var tmpRecord tmpStorage
 
 		if err := newDecoder.Decode(&tmpRecord); err != nil {
-			break
+			if err == io.EOF {
+				break
+			} else {
+				return nil, err
+			}
 		}
 
 		dataURL[tmpRecord.ShortURL] = tmpRecord.OriginalURL
@@ -58,6 +61,7 @@ func NewLocalRepository(filePath string) (*LocalRepository, error) {
 
 	return &LocalRepository{
 		file:      fileDB,
+		useFile:   true,
 		dataURL:   dataURL,
 		maxRecord: maxRecord,
 	}, nil
@@ -72,7 +76,7 @@ func (s *LocalRepository) CreateID(shortURL, originalURL string) error {
 	s.dataURL[shortURL] = originalURL
 	s.maxRecord = s.maxRecord + 1
 
-	if s.file == nil {
+	if s.useFile == false {
 		return nil
 	}
 

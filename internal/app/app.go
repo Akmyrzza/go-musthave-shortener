@@ -13,6 +13,8 @@ import (
 func Run(cfg *config.Config) error {
 
 	lg := logger.InitLogger()
+	defer lg.Sync()
+
 	repo, err := repository.NewLocalRepository(cfg.FilePath)
 	if err != nil {
 		return err

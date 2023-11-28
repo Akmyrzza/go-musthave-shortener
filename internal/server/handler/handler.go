@@ -2,19 +2,23 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
 	"net/url"
 )
 
+type Service interface {
+	CreateID(originalURL string) string
+	GetURL(id string) (string, bool)
+}
+
 type Handler struct {
-	Service service.Service
+	Service Service
 	BaseURL string
 }
 
-func NewHandler(s service.Service, BaseURL string) *Handler {
+func NewHandler(s Service, BaseURL string) *Handler {
 	return &Handler{
 		Service: s,
 		BaseURL: BaseURL,
@@ -29,7 +33,10 @@ func (h *Handler) CreateID(ctx *gin.Context) {
 	}
 
 	id := h.Service.CreateID(string(reqBody))
-	resultString := h.BaseURL + "/" + id
+	resultString, err := url.JoinPath(h.BaseURL, id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "result path error"})
+	}
 
 	ctx.Header("Content-Type", "text/plain")
 	ctx.String(http.StatusCreated, resultString)
