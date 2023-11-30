@@ -26,11 +26,13 @@ func (s *ServiceURL) CreateID(originalURL string) string {
 		err := s.Repository.CreateID(id, originalURL)
 		if err != nil {
 			if errors.Is(err, cerror.ErrAlreadyExist) {
-				return id
+				continue
 			} else {
 				return ""
 			}
 		}
+
+		return id
 	}
 }
 
