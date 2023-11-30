@@ -17,7 +17,7 @@ import (
 )
 
 func TestHandler_CreateID(t *testing.T) {
-	testRepository, err := repository.NewLocalRepository("")
+	testRepository, err := repository.NewInMemory("")
 	if err != nil {
 		log.Fatalf("error in repo: %d", err)
 	}
@@ -80,7 +80,7 @@ func TestHandler_CreateID(t *testing.T) {
 }
 
 func TestHandler_GetURL(t *testing.T) {
-	testRepository, err := repository.NewLocalRepository("")
+	testRepository, err := repository.NewInMemory("")
 	if err != nil {
 		log.Fatalf("error in repo: %d", err)
 	}
@@ -158,7 +158,7 @@ func TestHandler_GetURL(t *testing.T) {
 }
 
 func TestHandler_CreateIDJSON(t *testing.T) {
-	testRepository, err := repository.NewLocalRepository("")
+	testRepository, err := repository.NewInMemory("")
 	if err != nil {
 		log.Fatalf("error in repo: %d", err)
 	}
