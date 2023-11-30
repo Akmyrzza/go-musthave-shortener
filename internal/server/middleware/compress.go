@@ -3,9 +3,12 @@ package middleware
 import (
 	"bytes"
 	"compress/gzip"
-	"github.com/gin-gonic/gin"
 	"io"
 	"log"
+
+	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
+
+	"github.com/gin-gonic/gin"
 )
 
 type gzipWriter struct {
@@ -14,20 +17,26 @@ type gzipWriter struct {
 }
 
 func (w gzipWriter) Write(b []byte) (int, error) {
-	return w.Writer.Write(b)
+	n, err := w.Writer.Write(b)
+	if err != nil {
+		return 0, cerror.ErrWriteByte
+	}
+	return n, nil
 }
 
 func CompressRequest() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
 		if ctx.Request.Header.Get("Content-Type") == "application/json" ||
 			ctx.Request.Header.Get("Content-Type") == "text/html" {
-
 			acceptEncodings := ctx.Request.Header.Values("Accept-Encoding")
 
 			if foundHeader(acceptEncodings) {
 				compressWriter := gzip.NewWriter(ctx.Writer)
-				defer compressWriter.Close()
+				defer func() {
+					if err := compressWriter.Close(); err != nil {
+						log.Fatalf("error: compress: %d", err)
+					}
+				}()
 
 				ctx.Header("Content-Encoding", "gzip")
 				ctx.Writer = &gzipWriter{ctx.Writer, compressWriter}
@@ -42,7 +51,11 @@ func CompressRequest() gin.HandlerFunc {
 				log.Fatalf("error: new reader: %d", err)
 				return
 			}
-			defer compressReader.Close()
+			defer func() {
+				if err := compressReader.Close(); err != nil {
+					log.Fatalf("error: syncing file: %d", err)
+				}
+			}()
 
 			body, err := io.ReadAll(compressReader)
 			if err != nil {

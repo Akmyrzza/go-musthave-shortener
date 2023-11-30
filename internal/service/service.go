@@ -2,9 +2,12 @@ package service
 
 import (
 	"errors"
-	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 	"math/rand"
+
+	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 )
+
+var RandLength = 8
 
 type Repository interface {
 	CreateID(id, originalURL string) error
@@ -43,7 +46,7 @@ func (s *ServiceURL) GetURL(id string) (string, bool) {
 
 func randString() string {
 	letterBytes := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	b := make([]byte, 8)
+	b := make([]byte, RandLength)
 	for i := range b {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}

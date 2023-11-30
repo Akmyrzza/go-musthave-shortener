@@ -3,11 +3,12 @@ package repository
 import (
 	"encoding/json"
 	"errors"
-	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 	"io"
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 )
 
 type InMemory struct {
@@ -25,6 +26,8 @@ type tmpStorage struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
 }
+
+var Permission = 0600
 
 func NewInMemory(filePath string) (*InMemory, error) {
 	if filePath == "" {
@@ -48,10 +51,9 @@ func NewInMemory(filePath string) (*InMemory, error) {
 }
 
 func initFileDatabase(filePath string, dataURL *map[string]string) (*LocalRepository, error) {
-
-	fileDB, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
+	fileDB, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, os.FileMode(Permission))
 	if err != nil {
-		return nil, err
+		return nil, cerror.ErrOpenFileRepo
 	}
 
 	newDecoder := json.NewDecoder(fileDB)
@@ -65,14 +67,14 @@ func initFileDatabase(filePath string, dataURL *map[string]string) (*LocalReposi
 			if errors.Is(err, io.EOF) {
 				break
 			} else {
-				return nil, err
+				return nil, cerror.ErrDecodeFile
 			}
 		}
 
 		(*dataURL)[tmpRecord.ShortURL] = tmpRecord.OriginalURL
 		maxRecord, err = strconv.Atoi(tmpRecord.ID)
 		if err != nil {
-			return nil, err
+			return nil, cerror.ErrStringToInt
 		}
 	}
 
@@ -102,7 +104,7 @@ func (s *InMemory) CreateID(shortURL, originalURL string) error {
 }
 
 func saveInLocalDatabase(s *InMemory, shortURL, originalURL string) error {
-	s.local.maxRecord = s.local.maxRecord + 1
+	s.local.maxRecord++
 
 	var tmpRecord tmpStorage
 	tmpRecord.ID = strconv.Itoa(s.local.maxRecord)

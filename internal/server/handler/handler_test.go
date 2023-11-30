@@ -3,17 +3,18 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/akmyrzza/go-musthave-shortener/internal/repository"
-	"github.com/akmyrzza/go-musthave-shortener/internal/service"
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/akmyrzza/go-musthave-shortener/internal/repository"
+	"github.com/akmyrzza/go-musthave-shortener/internal/service"
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHandler_CreateID(t *testing.T) {
@@ -71,7 +72,11 @@ func TestHandler_CreateID(t *testing.T) {
 			testRouter.ServeHTTP(recorder, request)
 
 			result := recorder.Result()
-			defer result.Body.Close()
+			defer func() {
+				if err := result.Body.Close(); err != nil {
+					log.Fatalf("error: body close: %d", err)
+				}
+			}()
 
 			assert.Equal(t, test.want.code, result.StatusCode)
 			assert.Equal(t, test.want.contentType, result.Header.Get("Content-Type"))
@@ -136,7 +141,11 @@ func TestHandler_GetURL(t *testing.T) {
 
 			result := recorder.Result()
 
-			defer result.Body.Close()
+			defer func() {
+				if err := result.Body.Close(); err != nil {
+					log.Fatalf("error: body close: %d", err)
+				}
+			}()
 			resBody, err := io.ReadAll(result.Body)
 
 			require.NoError(t, err)
@@ -149,7 +158,11 @@ func TestHandler_GetURL(t *testing.T) {
 			testRouter.ServeHTTP(recorderGet, requestGet)
 
 			resultGet := recorderGet.Result()
-			defer resultGet.Body.Close()
+			defer func() {
+				if err := resultGet.Body.Close(); err != nil {
+					log.Fatalf("error: body close: %d", err)
+				}
+			}()
 
 			assert.Equal(t, test.want.code, resultGet.StatusCode)
 			assert.Equal(t, test.want.location, resultGet.Header.Get("Location"))
@@ -221,7 +234,11 @@ func TestHandler_CreateIDJSON(t *testing.T) {
 			testRouter.ServeHTTP(recorder, request)
 
 			result := recorder.Result()
-			defer result.Body.Close()
+			defer func() {
+				if err := result.Body.Close(); err != nil {
+					log.Fatalf("error: body close: %d", err)
+				}
+			}()
 
 			assert.Equal(t, test.want.code, result.StatusCode)
 			assert.Equal(t, test.want.contentType, result.Header.Get("Content-Type"))

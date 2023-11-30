@@ -2,10 +2,11 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Service interface {
@@ -18,10 +19,10 @@ type Handler struct {
 	BaseURL string
 }
 
-func NewHandler(s Service, BaseURL string) *Handler {
+func NewHandler(s Service, baseURL string) *Handler {
 	return &Handler{
 		Service: s,
-		BaseURL: BaseURL,
+		BaseURL: baseURL,
 	}
 }
 

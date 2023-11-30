@@ -2,6 +2,9 @@ package config
 
 import (
 	"flag"
+
+	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
+
 	"github.com/caarlos0/env/v6"
 )
 
@@ -21,7 +24,7 @@ func InitConfig() (*Config, error) {
 	flag.Parse()
 
 	if err := env.Parse(cfg); err != nil {
-		return nil, err
+		return nil, cerror.ErrEnvParseConfig
 	}
 
 	return cfg, nil
