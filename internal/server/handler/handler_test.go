@@ -72,11 +72,7 @@ func TestHandler_CreateID(t *testing.T) {
 			testRouter.ServeHTTP(recorder, request)
 
 			result := recorder.Result()
-			defer func() {
-				if err := result.Body.Close(); err != nil {
-					log.Fatalf("error: body close: %d", err)
-				}
-			}()
+			require.NoError(t, result.Body.Close())
 
 			assert.Equal(t, test.want.code, result.StatusCode)
 			assert.Equal(t, test.want.contentType, result.Header.Get("Content-Type"))
@@ -140,14 +136,9 @@ func TestHandler_GetURL(t *testing.T) {
 			testRouter.ServeHTTP(recorder, request)
 
 			result := recorder.Result()
-
-			defer func() {
-				if err := result.Body.Close(); err != nil {
-					log.Fatalf("error: body close: %d", err)
-				}
-			}()
 			resBody, err := io.ReadAll(result.Body)
 
+			require.NoError(t, result.Body.Close())
 			require.NoError(t, err)
 
 			id := strings.TrimPrefix(string(resBody), "http://localhost:8080"+"/")
@@ -158,12 +149,8 @@ func TestHandler_GetURL(t *testing.T) {
 			testRouter.ServeHTTP(recorderGet, requestGet)
 
 			resultGet := recorderGet.Result()
-			defer func() {
-				if err := resultGet.Body.Close(); err != nil {
-					log.Fatalf("error: body close: %d", err)
-				}
-			}()
 
+			require.NoError(t, resultGet.Body.Close())
 			assert.Equal(t, test.want.code, resultGet.StatusCode)
 			assert.Equal(t, test.want.location, resultGet.Header.Get("Location"))
 		})
@@ -234,12 +221,8 @@ func TestHandler_CreateIDJSON(t *testing.T) {
 			testRouter.ServeHTTP(recorder, request)
 
 			result := recorder.Result()
-			defer func() {
-				if err := result.Body.Close(); err != nil {
-					log.Fatalf("error: body close: %d", err)
-				}
-			}()
 
+			require.NoError(t, result.Body.Close())
 			assert.Equal(t, test.want.code, result.StatusCode)
 			assert.Equal(t, test.want.contentType, result.Header.Get("Content-Type"))
 		})
