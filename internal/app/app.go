@@ -15,7 +15,7 @@ func Run(cfg *config.Config) error {
 	lg := logger.InitLogger()
 	defer lg.Sync()
 
-	repo, err := repository.NewLocalRepository(cfg.FilePath)
+	repo, err := repository.NewInMemory(cfg.FilePath)
 	if err != nil {
 		return err
 	}

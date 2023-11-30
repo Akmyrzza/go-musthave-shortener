@@ -3,16 +3,20 @@ package repository
 import (
 	"encoding/json"
 	"errors"
+	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 	"io"
 	"log"
 	"os"
 	"strconv"
 )
 
+type InMemory struct {
+	dataURL map[string]string
+	local   *LocalRepository
+}
+
 type LocalRepository struct {
 	file      *os.File
-	useFile   bool
-	dataURL   map[string]string
 	maxRecord int
 }
 
@@ -22,15 +26,28 @@ type tmpStorage struct {
 	OriginalURL string `json:"original_url"`
 }
 
-func NewLocalRepository(filePath string) (*LocalRepository, error) {
+func NewInMemory(filePath string) (*InMemory, error) {
 	if filePath == "" {
-		return &LocalRepository{
-			file:      nil,
-			useFile:   false,
-			dataURL:   make(map[string]string),
-			maxRecord: 0,
+		return &InMemory{
+			dataURL: make(map[string]string),
+			local:   nil,
 		}, nil
 	}
+
+	dataURL := make(map[string]string)
+
+	local, err := initFileDatabase(filePath, &dataURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return &InMemory{
+		dataURL: dataURL,
+		local:   local,
+	}, nil
+}
+
+func initFileDatabase(filePath string, dataURL *map[string]string) (*LocalRepository, error) {
 
 	fileDB, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
 	if err != nil {
@@ -38,50 +55,57 @@ func NewLocalRepository(filePath string) (*LocalRepository, error) {
 	}
 
 	newDecoder := json.NewDecoder(fileDB)
-	dataURL := make(map[string]string)
+
 	maxRecord := 0
 
 	for {
 		var tmpRecord tmpStorage
 
 		if err := newDecoder.Decode(&tmpRecord); err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			} else {
 				return nil, err
 			}
 		}
 
-		dataURL[tmpRecord.ShortURL] = tmpRecord.OriginalURL
+		(*dataURL)[tmpRecord.ShortURL] = tmpRecord.OriginalURL
 		maxRecord, err = strconv.Atoi(tmpRecord.ID)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return &LocalRepository{
-		file:      fileDB,
-		useFile:   true,
-		dataURL:   dataURL,
-		maxRecord: maxRecord,
-	}, nil
+	ptrLocal := new(LocalRepository)
+	ptrLocal.file = fileDB
+	ptrLocal.maxRecord = maxRecord
+	return ptrLocal, nil
 }
 
-func (s *LocalRepository) CreateID(shortURL, originalURL string) error {
+func (s *InMemory) CreateID(shortURL, originalURL string) error {
 	_, found := s.dataURL[shortURL]
 	if found {
-		return errors.New("this id already exist")
+		return cerror.ErrAlreadyExist
 	}
 
 	s.dataURL[shortURL] = originalURL
-	s.maxRecord = s.maxRecord + 1
 
-	if !s.useFile {
+	if s.local == nil {
 		return nil
 	}
 
+	if err := saveInLocalDatabase(s, shortURL, originalURL); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func saveInLocalDatabase(s *InMemory, shortURL, originalURL string) error {
+	s.local.maxRecord = s.local.maxRecord + 1
+
 	var tmpRecord tmpStorage
-	tmpRecord.ID = strconv.Itoa(s.maxRecord)
+	tmpRecord.ID = strconv.Itoa(s.local.maxRecord)
 	tmpRecord.ShortURL = shortURL
 	tmpRecord.OriginalURL = originalURL
 
@@ -91,7 +115,7 @@ func (s *LocalRepository) CreateID(shortURL, originalURL string) error {
 	}
 
 	data = append(data, '\n')
-	_, err = s.file.Write(data)
+	_, err = s.local.file.Write(data)
 	if err != nil {
 		log.Fatalf("error: writing to json file: %d", err)
 	}
@@ -99,7 +123,7 @@ func (s *LocalRepository) CreateID(shortURL, originalURL string) error {
 	return nil
 }
 
-func (s *LocalRepository) GetURL(id string) (string, bool) {
+func (s *InMemory) GetURL(id string) (string, bool) {
 	originalURL, ok := s.dataURL[id]
 	return originalURL, ok
 }
