@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 
 	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
@@ -23,19 +24,18 @@ func NewServiceURL(r Repository) *ServiceURL {
 		Repository: r,
 	}
 }
-func (s *ServiceURL) CreateID(originalURL string) string {
+func (s *ServiceURL) CreateID(originalURL string) (string, error) {
 	for {
 		id := randString()
 		err := s.Repository.CreateID(id, originalURL)
 		if err != nil {
 			if errors.Is(err, cerror.ErrAlreadyExist) {
 				continue
-			} else {
-				return ""
 			}
+			return "", fmt.Errorf("creating id error: %w", err)
 		}
 
-		return id
+		return id, nil
 	}
 }
 

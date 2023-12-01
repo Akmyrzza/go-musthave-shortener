@@ -10,7 +10,7 @@ import (
 )
 
 type Service interface {
-	CreateID(originalURL string) string
+	CreateID(originalURL string) (string, error)
 	GetURL(id string) (string, bool)
 }
 
@@ -33,7 +33,11 @@ func (h *Handler) CreateID(ctx *gin.Context) {
 		return
 	}
 
-	id := h.Service.CreateID(string(reqBody))
+	id, err := h.Service.CreateID(string(reqBody))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
+	}
+
 	resultString, err := url.JoinPath(h.BaseURL, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "result path error"})
@@ -77,7 +81,11 @@ func (h *Handler) CreateIDJSON(ctx *gin.Context) {
 		return
 	}
 
-	id := h.Service.CreateID(stURL.URL)
+	id, err := h.Service.CreateID(stURL.URL)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
+	}
+
 	resultString, err := url.JoinPath(h.BaseURL, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "url joining"})

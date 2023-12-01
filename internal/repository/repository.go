@@ -3,6 +3,7 @@ package repository
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -13,12 +14,12 @@ import (
 
 type InMemory struct {
 	dataURL map[string]string
-	local   *LocalRepository
 }
 
 type LocalRepository struct {
-	file      *os.File
-	maxRecord int
+	file         *os.File
+	maxRecord    int
+	InMemoryRepo *InMemory
 }
 
 type tmpStorage struct {
@@ -29,28 +30,27 @@ type tmpStorage struct {
 
 var Permission = 0600
 
-func NewInMemory(filePath string) (*InMemory, error) {
+func NewRepo(filePath string) (*LocalRepository, error) {
+	inMemory := new(InMemory)
+	inMemory.dataURL = make(map[string]string)
+
 	if filePath == "" {
-		return &InMemory{
-			dataURL: make(map[string]string),
-			local:   nil,
+		return &LocalRepository{
+			file:         nil,
+			maxRecord:    0,
+			InMemoryRepo: inMemory,
 		}, nil
 	}
 
-	dataURL := make(map[string]string)
-
-	local, err := initFileDatabase(filePath, &dataURL)
+	local, err := initFileDatabase(filePath, inMemory)
 	if err != nil {
 		return nil, err
 	}
 
-	return &InMemory{
-		dataURL: dataURL,
-		local:   local,
-	}, nil
+	return local, nil
 }
 
-func initFileDatabase(filePath string, dataURL *map[string]string) (*LocalRepository, error) {
+func initFileDatabase(filePath string, InMemory *InMemory) (*LocalRepository, error) {
 	fileDB, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, os.FileMode(Permission))
 	if err != nil {
 		return nil, cerror.ErrOpenFileRepo
@@ -66,12 +66,11 @@ func initFileDatabase(filePath string, dataURL *map[string]string) (*LocalReposi
 		if err := newDecoder.Decode(&tmpRecord); err != nil {
 			if errors.Is(err, io.EOF) {
 				break
-			} else {
-				return nil, cerror.ErrDecodeFile
 			}
+			return nil, fmt.Errorf("decoding error: %w", err)
 		}
 
-		(*dataURL)[tmpRecord.ShortURL] = tmpRecord.OriginalURL
+		InMemory.dataURL[tmpRecord.ShortURL] = tmpRecord.OriginalURL
 		maxRecord, err = strconv.Atoi(tmpRecord.ID)
 		if err != nil {
 			return nil, cerror.ErrStringToInt
@@ -81,18 +80,19 @@ func initFileDatabase(filePath string, dataURL *map[string]string) (*LocalReposi
 	ptrLocal := new(LocalRepository)
 	ptrLocal.file = fileDB
 	ptrLocal.maxRecord = maxRecord
+	ptrLocal.InMemoryRepo = InMemory
 	return ptrLocal, nil
 }
 
-func (s *InMemory) CreateID(shortURL, originalURL string) error {
-	_, found := s.dataURL[shortURL]
+func (s *LocalRepository) CreateID(shortURL, originalURL string) error {
+	_, found := s.InMemoryRepo.dataURL[shortURL]
 	if found {
 		return cerror.ErrAlreadyExist
 	}
 
-	s.dataURL[shortURL] = originalURL
+	s.InMemoryRepo.dataURL[shortURL] = originalURL
 
-	if s.local == nil {
+	if s.file == nil {
 		return nil
 	}
 
@@ -103,11 +103,11 @@ func (s *InMemory) CreateID(shortURL, originalURL string) error {
 	return nil
 }
 
-func saveInLocalDatabase(s *InMemory, shortURL, originalURL string) error {
-	s.local.maxRecord++
+func saveInLocalDatabase(s *LocalRepository, shortURL, originalURL string) error {
+	s.maxRecord++
 
 	var tmpRecord tmpStorage
-	tmpRecord.ID = strconv.Itoa(s.local.maxRecord)
+	tmpRecord.ID = strconv.Itoa(s.maxRecord)
 	tmpRecord.ShortURL = shortURL
 	tmpRecord.OriginalURL = originalURL
 
@@ -117,7 +117,7 @@ func saveInLocalDatabase(s *InMemory, shortURL, originalURL string) error {
 	}
 
 	data = append(data, '\n')
-	_, err = s.local.file.Write(data)
+	_, err = s.file.Write(data)
 	if err != nil {
 		log.Fatalf("error: writing to json file: %d", err)
 	}
@@ -125,7 +125,7 @@ func saveInLocalDatabase(s *InMemory, shortURL, originalURL string) error {
 	return nil
 }
 
-func (s *InMemory) GetURL(id string) (string, bool) {
-	originalURL, ok := s.dataURL[id]
+func (s *LocalRepository) GetURL(id string) (string, bool) {
+	originalURL, ok := s.InMemoryRepo.dataURL[id]
 	return originalURL, ok
 }

@@ -21,7 +21,7 @@ func Run(cfg *config.Config) error {
 		}
 	}()
 
-	repo, err := repository.NewInMemory(cfg.FilePath)
+	repo, err := repository.NewRepo(cfg.FilePath)
 	if err != nil {
 		return cerror.ErrInMemoryRepo
 	}
