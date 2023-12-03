@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"io"
 	"log"
 	"os"
@@ -19,7 +20,7 @@ type InMemory struct {
 type LocalRepository struct {
 	file         *os.File
 	maxRecord    int
-	InMemoryRepo *InMemory
+	inMemoryRepo *InMemory
 }
 
 type tmpStorage struct {
@@ -30,27 +31,30 @@ type tmpStorage struct {
 
 var Permission = 0600
 
-func NewRepo(filePath string) (*LocalRepository, error) {
+func NewRepo(filePath string) (service.Repository, error) {
+
+	inMemoryStore := initInMemoryStore()
+
+	if filePath == "" {
+		return inMemoryStore, nil
+	}
+
+	fileStore, err := initFileStore(inMemoryStore, filePath)
+	if err != nil {
+		return nil, fmt.Errorf("initialiizing file store: %w", err)
+	}
+
+	return fileStore, nil
+}
+
+func initInMemoryStore() *InMemory {
 	inMemory := new(InMemory)
 	inMemory.dataURL = make(map[string]string)
 
-	if filePath == "" {
-		return &LocalRepository{
-			file:         nil,
-			maxRecord:    0,
-			InMemoryRepo: inMemory,
-		}, nil
-	}
-
-	local, err := initFileDatabase(filePath, inMemory)
-	if err != nil {
-		return nil, err
-	}
-
-	return local, nil
+	return inMemory
 }
 
-func initFileDatabase(filePath string, InMemory *InMemory) (*LocalRepository, error) {
+func initFileStore(m *InMemory, filePath string) (*LocalRepository, error) {
 	fileDB, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, os.FileMode(Permission))
 	if err != nil {
 		return nil, cerror.ErrOpenFileRepo
@@ -70,7 +74,7 @@ func initFileDatabase(filePath string, InMemory *InMemory) (*LocalRepository, er
 			return nil, fmt.Errorf("decoding error: %w", err)
 		}
 
-		InMemory.dataURL[tmpRecord.ShortURL] = tmpRecord.OriginalURL
+		m.dataURL[tmpRecord.ShortURL] = tmpRecord.OriginalURL
 		maxRecord, err = strconv.Atoi(tmpRecord.ID)
 		if err != nil {
 			return nil, cerror.ErrStringToInt
@@ -80,20 +84,29 @@ func initFileDatabase(filePath string, InMemory *InMemory) (*LocalRepository, er
 	ptrLocal := new(LocalRepository)
 	ptrLocal.file = fileDB
 	ptrLocal.maxRecord = maxRecord
-	ptrLocal.InMemoryRepo = InMemory
+	ptrLocal.inMemoryRepo = m
 	return ptrLocal, nil
 }
 
-func (s *LocalRepository) CreateID(shortURL, originalURL string) error {
-	_, found := s.InMemoryRepo.dataURL[shortURL]
+func (s *InMemory) CreateID(shortURL, originalURL string) error {
+	_, found := s.dataURL[shortURL]
 	if found {
 		return cerror.ErrAlreadyExist
 	}
 
-	s.InMemoryRepo.dataURL[shortURL] = originalURL
+	s.dataURL[shortURL] = originalURL
 
-	if s.file == nil {
-		return nil
+	return nil
+}
+
+func (s *InMemory) GetURL(id string) (string, bool) {
+	originalURL, ok := s.dataURL[id]
+	return originalURL, ok
+}
+
+func (s *LocalRepository) CreateID(shortURL, originalURL string) error {
+	if err := s.inMemoryRepo.CreateID(shortURL, originalURL); err != nil {
+		return err
 	}
 
 	if err := saveInLocalDatabase(s, shortURL, originalURL); err != nil {
@@ -101,6 +114,10 @@ func (s *LocalRepository) CreateID(shortURL, originalURL string) error {
 	}
 
 	return nil
+}
+
+func (s *LocalRepository) GetURL(id string) (string, bool) {
+	return s.inMemoryRepo.GetURL(id)
 }
 
 func saveInLocalDatabase(s *LocalRepository, shortURL, originalURL string) error {
@@ -123,9 +140,4 @@ func saveInLocalDatabase(s *LocalRepository, shortURL, originalURL string) error
 	}
 
 	return nil
-}
-
-func (s *LocalRepository) GetURL(id string) (string, bool) {
-	originalURL, ok := s.InMemoryRepo.dataURL[id]
-	return originalURL, ok
 }
