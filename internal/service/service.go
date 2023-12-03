@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"github.com/akmyrzza/go-musthave-shortener/internal/repository"
 	"math/rand"
 
 	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
@@ -10,16 +11,11 @@ import (
 
 var RandLength = 8
 
-type Repository interface {
-	CreateID(id, originalURL string) error
-	GetURL(id string) (string, bool)
-}
-
 type ServiceURL struct {
-	Repository Repository
+	Repository repository.Repository
 }
 
-func NewServiceURL(r Repository) *ServiceURL {
+func NewServiceURL(r repository.Repository) *ServiceURL {
 	return &ServiceURL{
 		Repository: r,
 	}
