@@ -187,3 +187,33 @@
 [go.dev/bufio](https://pkg.go.dev/bufio) — документация пакета bufio.
 
 [The Linux Foundation | Classic SysAdmin: Understanding Linux File Permissions](https://www.linuxfoundation.org/blog/blog/classic-sysadmin-understanding-linux-file-permissions) — модификаторы доступа в Linux.
+
+# Спринт 3
+
+## Пакеты time, context. Отмена операций и управление временем выполнения
+
+### Время: даты, интервалы, таймеры
+
+[go.dev/time](https://pkg.go.dev/time) — документация пакета time.
+
+### Контекст: отмена операций
+
+[go.dev/context](https://pkg.go.dev/context) — документация пакета context.
+
+[go.dev/github.com/jmoiron/sqlx#DB.SelectContext](https://pkg.go.dev/github.com/jmoiron/sqlx#DB.SelectContext) — контекст в запросах к БД на примере пакета sqlx.
+
+[go.dev/net/http#NewRequestWithContext](https://pkg.go.dev/net/http#NewRequestWithContext) — контекст в HTTP-запросах на примере пакета net/http.
+
+[go.dev/runtime/trace](https://pkg.go.dev/runtime/trace) — трассировка на примере пакета runtime/trace.
+
+[DigitalOcean | How To Use Contexts in Go](https://www.digitalocean.com/community/tutorials/how-to-use-contexts-in-go) — об использовании контекста в Go.
+
+[Ильдар Карымов | Разбираемся с контекстами в Go](https://blog.ildarkarymov.ru/posts/context-guide/ — конспект видео про контексты.
+
+[Хабр | Разбираемся с пакетом Context в Golang](https://habr.com/ru/companies/nixys/articles/461723/) — о лучших практиках и подводных камнях при использовании контекста.
+
+
+## Пакет database/sql. Взаимодействие с базами данных SQL
+
+### Пакет gomock. Имитация данных для тестирования
+
