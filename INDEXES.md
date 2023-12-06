@@ -208,12 +208,36 @@
 
 [DigitalOcean | How To Use Contexts in Go](https://www.digitalocean.com/community/tutorials/how-to-use-contexts-in-go) — об использовании контекста в Go.
 
-[Ильдар Карымов | Разбираемся с контекстами в Go](https://blog.ildarkarymov.ru/posts/context-guide/ — конспект видео про контексты.
+[Ильдар Карымов | Разбираемся с контекстами в Go](https://blog.ildarkarymov.ru/posts/context-guide/) — конспект видео про контексты.
 
 [Хабр | Разбираемся с пакетом Context в Golang](https://habr.com/ru/companies/nixys/articles/461723/) — о лучших практиках и подводных камнях при использовании контекста.
 
 
 ## Пакет database/sql. Взаимодействие с базами данных SQL
 
-### Пакет gomock. Имитация данных для тестирования
+### Пакет gomock. Имитация баз данных
 
+[go.dev/github.com/golang/mock/gomock](https://pkg.go.dev/github.com/golang/mock/gomock) — документация пакета gomock.
+
+[GitHub | Testing with GoMock: A Tutorial](https://gist.github.com/thiagozs/4276432d12c2e5b152ea15b3f8b0012e) — руководство по тестированию с
+
+
+### Абстрактный интерфейс и SQL-драйверы
+
+[go.dev/database/sql](https://pkg.go.dev/database/sql) — документация пакета database/sql.
+
+[GitHub | SQLDrivers](https://github.com/golang/go/wiki/SQLDrivers) — список доступных драйверов.
+
+[Хабр | Go и MySQL: настраиваем пул соединений](https://habr.com/ru/companies/oleg-bunin/articles/583558/) — статья о MySQL.
+
+[GolangBot | MySQL Tutorial: Connecting to MySQL and Creating a DB using Go](https://golangbot.com/connect-create-db-mysql/) — руководство по работе с MySQL.
+
+[Go database/sql tutorial](https://go-database-sql.org/) — популярный самоучитель по работе с БД в Go.
+
+[Soham Kamani | Using an SQL Database in Go](https://www.sohamkamani.com/golang/sql-database/) — о работе с БД SQL в Go.
+
+[GoLinuxCloud | Golang SQLite3 Tutorial](https://www.golinuxcloud.com/golang-sqlite3/) — руководство по работе с SQLite с примерами.
+
+[Ardan Labs | Working with SQLite using Go and Python](https://www.ardanlabs.com/blog/2020/11/working-with-sqlite-using-go-python.html) — о работе с SQLite.
+
+[YouTube | Go Northwest | David Crawshaw SQLite and Go](https://www.youtube.com/watch?v=RqubKSF3wig&ab_channel=GoNorthwest) — видео о Go и SQLite.

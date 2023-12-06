@@ -12,6 +12,7 @@ import (
 type Service interface {
 	CreateID(originalURL string) (string, error)
 	GetURL(id string) (string, bool)
+	Ping() error
 }
 
 type Handler struct {
@@ -93,4 +94,14 @@ func (h *Handler) CreateIDJSON(ctx *gin.Context) {
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusCreated, gin.H{"result": resultString})
+}
+
+func (h *Handler) Ping(ctx *gin.Context) {
+	err := h.Service.Ping()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, "")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "")
 }

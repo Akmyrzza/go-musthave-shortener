@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/akmyrzza/go-musthave-shortener/internal/repository/store"
 	"log"
 	"net/http"
 
@@ -21,12 +22,17 @@ func Run(cfg *config.Config) error {
 		}
 	}()
 
+	db, err := store.InitDatabase(cfg.DatabasePath)
+	if err != nil {
+		return err
+	}
+
 	repo, err := repository.NewRepo(cfg.FilePath)
 	if err != nil {
 		return cerror.ErrInMemoryRepo
 	}
 
-	srv := service.NewServiceURL(repo)
+	srv := service.NewServiceURL(repo, db)
 	hndlr := handler.NewHandler(srv, cfg.BaseURL)
 
 	newServer := &http.Server{

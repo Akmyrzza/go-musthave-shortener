@@ -22,7 +22,8 @@ func TestHandler_CreateID(t *testing.T) {
 	if err != nil {
 		log.Fatalf("error in repo: %d", err)
 	}
-	testService := service.NewServiceURL(testRepository)
+
+	testService := service.NewServiceURL(testRepository, nil)
 	testHandler := NewHandler(testService, "http://localhost:8080")
 
 	testRouter := gin.Default()
@@ -85,7 +86,7 @@ func TestHandler_GetURL(t *testing.T) {
 	if err != nil {
 		log.Fatalf("error in repo: %d", err)
 	}
-	testService := service.NewServiceURL(testRepository)
+	testService := service.NewServiceURL(testRepository, nil)
 	testHandler := NewHandler(testService, "http://localhost:8080")
 	testRouter := gin.Default()
 
@@ -162,7 +163,7 @@ func TestHandler_CreateIDJSON(t *testing.T) {
 	if err != nil {
 		log.Fatalf("error in repo: %d", err)
 	}
-	testService := service.NewServiceURL(testRepository)
+	testService := service.NewServiceURL(testRepository, nil)
 	testHandler := NewHandler(testService, "http://localhost:8080")
 
 	testRouter := gin.Default()

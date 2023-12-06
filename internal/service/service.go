@@ -11,15 +11,22 @@ import (
 
 var RandLength = 8
 
-type ServiceURL struct {
-	Repository repository.Repository
+type Store interface {
+	PingStore() error
 }
 
-func NewServiceURL(r repository.Repository) *ServiceURL {
+type ServiceURL struct {
+	Repository repository.Repository
+	DB         Store
+}
+
+func NewServiceURL(r repository.Repository, db Store) *ServiceURL {
 	return &ServiceURL{
 		Repository: r,
+		DB:         db,
 	}
 }
+
 func (s *ServiceURL) CreateID(originalURL string) (string, error) {
 	for {
 		id := randString()
@@ -38,6 +45,10 @@ func (s *ServiceURL) CreateID(originalURL string) (string, error) {
 func (s *ServiceURL) GetURL(id string) (string, bool) {
 	originalURL, ok := s.Repository.GetURL(id)
 	return originalURL, ok
+}
+
+func (s *ServiceURL) Ping() error {
+	return s.DB.PingStore()
 }
 
 func randString() string {
