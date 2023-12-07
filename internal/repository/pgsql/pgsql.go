@@ -37,9 +37,9 @@ func InitDatabase(DatabasePath string) (service.Repository, error) {
 func initTables(db *sql.DB, tableName string) error {
 	err := tableExist(db, tableName)
 	if err != nil {
-		err := createTable(db, tableName)
-		if err != nil {
-			return err
+		errCreating := createTable(db, tableName)
+		if errCreating != nil {
+			return errCreating
 		}
 
 		return nil
