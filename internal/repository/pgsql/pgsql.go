@@ -3,6 +3,7 @@ package pgsql
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -14,6 +15,10 @@ type StoreDB struct {
 }
 
 func InitDatabase(DatabasePath string) (service.Repository, error) {
+	if DatabasePath == "" {
+		return nil, errors.New("error database path empty")
+	}
+
 	db, err := sql.Open("pgx", DatabasePath)
 	if err != nil {
 		return nil, fmt.Errorf("error opening db: %w", err)
