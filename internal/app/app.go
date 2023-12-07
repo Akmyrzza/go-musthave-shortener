@@ -24,7 +24,7 @@ func Run(cfg *config.Config) error {
 
 	repo, err := pgsql.InitDatabase(cfg.DatabasePath)
 	if err != nil {
-		log.Fatalf("database error: %w", err)
+		log.Fatalf("database error: %d", err)
 	}
 
 	if repo == nil {

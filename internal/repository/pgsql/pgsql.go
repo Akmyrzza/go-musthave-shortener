@@ -83,7 +83,7 @@ func (s *StoreDB) CreateShortURL(originalURL, shortURL string) error {
 
 	_, err := s.DB.Exec(query, originalURL, shortURL)
 	if err != nil {
-		return fmt.Errorf("error: db query exec: %w", err)
+		return fmt.Errorf("error: db query exec: %w", err.Error())
 	}
 
 	return nil
@@ -98,7 +98,7 @@ func (s *StoreDB) GetOriginalURL(shortURL string) (string, error) {
 
 	err := row.Scan(&url)
 	if err != nil {
-		return "", fmt.Errorf("error: db query: %w", err)
+		return "", fmt.Errorf("error: db query: %w", err.Error())
 	}
 
 	return url, nil
