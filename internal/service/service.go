@@ -29,7 +29,7 @@ func NewServiceURL(r Repository) *ServiceURL {
 func (s *ServiceURL) CreateShortURL(originalURL string) (string, error) {
 	for {
 		shortURL := randString()
-		err := s.Repository.CreateShortURL(shortURL, originalURL)
+		err := s.Repository.CreateShortURL(originalURL, shortURL)
 		if err != nil {
 			if errors.Is(err, cerror.ErrAlreadyExist) {
 				continue

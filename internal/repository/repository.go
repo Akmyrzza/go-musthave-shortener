@@ -86,7 +86,7 @@ func initFileStore(m *inMemory, filePath string) (*localRepository, error) {
 	return ptrLocal, nil
 }
 
-func (s *inMemory) CreateShortURL(shortURL, originalURL string) error {
+func (s *inMemory) CreateShortURL(originalURL, shortURL string) error {
 	_, found := s.dataURL[shortURL]
 	if found {
 		return cerror.ErrAlreadyExist
@@ -110,12 +110,12 @@ func (s *inMemory) PingStore() error {
 	return errors.New("no ping")
 }
 
-func (s *localRepository) CreateShortURL(shortURL, originalURL string) error {
-	if err := s.inMemoryRepo.CreateShortURL(shortURL, originalURL); err != nil {
+func (s *localRepository) CreateShortURL(originalURL, shortURL string) error {
+	if err := s.inMemoryRepo.CreateShortURL(originalURL, shortURL); err != nil {
 		return err
 	}
 
-	if err := saveInLocalDatabase(s, shortURL, originalURL); err != nil {
+	if err := saveInLocalDatabase(s, originalURL, shortURL); err != nil {
 		return err
 	}
 
@@ -130,7 +130,7 @@ func (s *localRepository) PingStore() error {
 	return errors.New("no ping")
 }
 
-func saveInLocalDatabase(s *localRepository, shortURL, originalURL string) error {
+func saveInLocalDatabase(s *localRepository, originalURL, shortURL string) error {
 	s.maxRecord++
 
 	var tmpRecord tmpStorage

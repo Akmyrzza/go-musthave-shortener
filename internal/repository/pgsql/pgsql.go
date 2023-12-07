@@ -35,7 +35,7 @@ func InitDatabase(DatabasePath string) (service.Repository, error) {
 }
 
 func initTables(db *sql.DB, tableName string) error {
-	err := tableExist(db, tableName)
+	err := tableExist(db)
 	if err != nil {
 		errCreating := createTable(db, tableName)
 		if errCreating != nil {
@@ -48,11 +48,12 @@ func initTables(db *sql.DB, tableName string) error {
 	return nil
 }
 
-func tableExist(db *sql.DB, tableName string) error {
-	query := `SELECT COUNT(*) from urls WHERE table_name = $1`
-	err := db.QueryRow(query, tableName)
+func tableExist(db *sql.DB) error {
+	var count int
+	query := `SELECT COUNT(*) from urls`
+	err := db.QueryRow(query).Scan(&count)
 	if err != nil {
-		return fmt.Errorf("table does not exist: %w", err.Err())
+		return fmt.Errorf("table does not exist: %w", err)
 	}
 
 	return nil
