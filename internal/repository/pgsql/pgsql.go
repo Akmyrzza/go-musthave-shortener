@@ -47,7 +47,7 @@ func tableExist(db *sql.DB, tableName string) error {
 	query := `SELECT COUNT(*) from urls WHERE table_name = $1`
 	err := db.QueryRow(query, tableName)
 	if err != nil {
-		return fmt.Errorf("table does not exist: %w", err)
+		return fmt.Errorf("table does not exist: %w", err.Err())
 	}
 
 	return nil
@@ -83,7 +83,7 @@ func (s *StoreDB) CreateShortURL(originalURL, shortURL string) error {
 
 	_, err := s.DB.Exec(query, originalURL, shortURL)
 	if err != nil {
-		return fmt.Errorf("error: db query exec: %w", err.Error())
+		return fmt.Errorf("error: db query exec: %w", err)
 	}
 
 	return nil
@@ -98,7 +98,7 @@ func (s *StoreDB) GetOriginalURL(shortURL string) (string, error) {
 
 	err := row.Scan(&url)
 	if err != nil {
-		return "", fmt.Errorf("error: db query: %w", err.Error())
+		return "", fmt.Errorf("error: db query: %w", err)
 	}
 
 	return url, nil
