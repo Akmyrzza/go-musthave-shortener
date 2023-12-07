@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"io"
 	"log"
 	"os"
 	"strconv"
-
-	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 )
 
 type inMemory struct {
@@ -107,6 +106,10 @@ func (s *inMemory) GetOriginalURL(id string) (string, error) {
 	return originalURL, nil
 }
 
+func (s *inMemory) PingStore() error {
+	return errors.New("no ping")
+}
+
 func (s *localRepository) CreateShortURL(shortURL, originalURL string) error {
 	if err := s.inMemoryRepo.CreateShortURL(shortURL, originalURL); err != nil {
 		return err
@@ -121,6 +124,10 @@ func (s *localRepository) CreateShortURL(shortURL, originalURL string) error {
 
 func (s *localRepository) GetOriginalURL(originalURL string) (string, error) {
 	return s.inMemoryRepo.GetOriginalURL(originalURL)
+}
+
+func (s *localRepository) PingStore() error {
+	return errors.New("no ping")
 }
 
 func saveInLocalDatabase(s *localRepository, shortURL, originalURL string) error {

@@ -13,15 +13,11 @@ var RandLength = 8
 type Repository interface {
 	CreateShortURL(shortURL, originalURL string) error
 	GetOriginalURL(originalURL string) (string, error)
-}
-
-type Store interface {
 	PingStore() error
 }
 
 type ServiceURL struct {
 	Repository Repository
-	Database   Store
 }
 
 func NewServiceURL(r Repository) *ServiceURL {
@@ -51,7 +47,7 @@ func (s *ServiceURL) GetOriginalURL(shortURL string) (string, error) {
 }
 
 func (s *ServiceURL) Ping() error {
-	return s.Database.PingStore()
+	return s.Repository.PingStore()
 }
 
 func randString() string {
