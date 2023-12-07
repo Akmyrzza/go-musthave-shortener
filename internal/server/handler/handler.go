@@ -9,21 +9,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Service interface {
-	CreateID(originalURL string) (string, error)
-	GetURL(id string) (string, bool)
+type ServiceURL interface {
+	CreateShortURL(originalURL string) (string, error)
+	GetOriginalURL(shortURL string) (string, error)
 	Ping() error
 }
 
 type Handler struct {
-	Service Service
+	Service ServiceURL
 	BaseURL string
 }
 
-func NewHandler(s Service, baseURL string) *Handler {
+func NewHandler(s ServiceURL, b string) *Handler {
 	return &Handler{
 		Service: s,
-		BaseURL: baseURL,
+		BaseURL: b,
 	}
 }
 
@@ -34,7 +34,7 @@ func (h *Handler) CreateID(ctx *gin.Context) {
 		return
 	}
 
-	id, err := h.Service.CreateID(string(reqBody))
+	id, err := h.Service.CreateShortURL(string(reqBody))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
 	}
@@ -55,9 +55,9 @@ func (h *Handler) GetURL(ctx *gin.Context) {
 		return
 	}
 
-	originalURL, ok := h.Service.GetURL(id)
-	if !ok {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "id not found"})
+	originalURL, err := h.Service.GetOriginalURL(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *Handler) CreateIDJSON(ctx *gin.Context) {
 		return
 	}
 
-	id, err := h.Service.CreateID(stURL.URL)
+	id, err := h.Service.CreateShortURL(stURL.URL)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
 	}

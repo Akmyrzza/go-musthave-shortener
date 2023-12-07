@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/akmyrzza/go-musthave-shortener/internal/repository"
 	"math/rand"
 
 	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
@@ -11,26 +10,30 @@ import (
 
 var RandLength = 8
 
+type Repository interface {
+	CreateShortURL(shortURL, originalURL string) error
+	GetOriginalURL(originalURL string) (string, error)
+}
+
 type Store interface {
 	PingStore() error
 }
 
 type ServiceURL struct {
-	Repository repository.Repository
-	DB         Store
+	Repository Repository
+	Database   Store
 }
 
-func NewServiceURL(r repository.Repository, db Store) *ServiceURL {
+func NewServiceURL(r Repository) *ServiceURL {
 	return &ServiceURL{
 		Repository: r,
-		DB:         db,
 	}
 }
 
-func (s *ServiceURL) CreateID(originalURL string) (string, error) {
+func (s *ServiceURL) CreateShortURL(originalURL string) (string, error) {
 	for {
-		id := randString()
-		err := s.Repository.CreateID(id, originalURL)
+		shortURL := randString()
+		err := s.Repository.CreateShortURL(shortURL, originalURL)
 		if err != nil {
 			if errors.Is(err, cerror.ErrAlreadyExist) {
 				continue
@@ -38,17 +41,17 @@ func (s *ServiceURL) CreateID(originalURL string) (string, error) {
 			return "", fmt.Errorf("creating id error: %w", err)
 		}
 
-		return id, nil
+		return shortURL, nil
 	}
 }
 
-func (s *ServiceURL) GetURL(id string) (string, bool) {
-	originalURL, ok := s.Repository.GetURL(id)
+func (s *ServiceURL) GetOriginalURL(shortURL string) (string, error) {
+	originalURL, ok := s.Repository.GetOriginalURL(shortURL)
 	return originalURL, ok
 }
 
 func (s *ServiceURL) Ping() error {
-	return s.DB.PingStore()
+	return s.Database.PingStore()
 }
 
 func randString() string {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"io"
 	"log"
 	"os"
@@ -11,11 +12,6 @@ import (
 
 	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 )
-
-type Repository interface {
-	CreateID(id, originalURL string) error
-	GetURL(id string) (string, bool)
-}
 
 type inMemory struct {
 	dataURL map[string]string
@@ -35,8 +31,7 @@ type tmpStorage struct {
 
 var Permission = 0600
 
-func NewRepo(filePath string) (Repository, error) {
-
+func NewRepo(filePath string) (service.Repository, error) {
 	inMemoryStore := initInMemoryStore()
 
 	if filePath == "" {
@@ -45,7 +40,7 @@ func NewRepo(filePath string) (Repository, error) {
 
 	fileStore, err := initFileStore(inMemoryStore, filePath)
 	if err != nil {
-		return nil, fmt.Errorf("initialiizing file store: %w", err)
+		return nil, fmt.Errorf("initialiizing file pgsql: %w", err)
 	}
 
 	return fileStore, nil
@@ -92,7 +87,7 @@ func initFileStore(m *inMemory, filePath string) (*localRepository, error) {
 	return ptrLocal, nil
 }
 
-func (s *inMemory) CreateID(shortURL, originalURL string) error {
+func (s *inMemory) CreateShortURL(shortURL, originalURL string) error {
 	_, found := s.dataURL[shortURL]
 	if found {
 		return cerror.ErrAlreadyExist
@@ -103,13 +98,17 @@ func (s *inMemory) CreateID(shortURL, originalURL string) error {
 	return nil
 }
 
-func (s *inMemory) GetURL(id string) (string, bool) {
+func (s *inMemory) GetOriginalURL(id string) (string, error) {
 	originalURL, ok := s.dataURL[id]
-	return originalURL, ok
+	if !ok {
+		return "", fmt.Errorf("not found in base")
+	}
+
+	return originalURL, nil
 }
 
-func (s *localRepository) CreateID(shortURL, originalURL string) error {
-	if err := s.inMemoryRepo.CreateID(shortURL, originalURL); err != nil {
+func (s *localRepository) CreateShortURL(shortURL, originalURL string) error {
+	if err := s.inMemoryRepo.CreateShortURL(shortURL, originalURL); err != nil {
 		return err
 	}
 
@@ -120,8 +119,8 @@ func (s *localRepository) CreateID(shortURL, originalURL string) error {
 	return nil
 }
 
-func (s *localRepository) GetURL(id string) (string, bool) {
-	return s.inMemoryRepo.GetURL(id)
+func (s *localRepository) GetOriginalURL(originalURL string) (string, error) {
+	return s.inMemoryRepo.GetOriginalURL(originalURL)
 }
 
 func saveInLocalDatabase(s *localRepository, shortURL, originalURL string) error {

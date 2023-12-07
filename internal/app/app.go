@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/akmyrzza/go-musthave-shortener/internal/repository/store"
+	"github.com/akmyrzza/go-musthave-shortener/internal/repository/pgsql"
 	"log"
 	"net/http"
 
@@ -22,17 +22,19 @@ func Run(cfg *config.Config) error {
 		}
 	}()
 
-	db, err := store.InitDatabase(cfg.DatabasePath)
+	repo, err := pgsql.InitDatabase(cfg.DatabasePath)
 	if err != nil {
-		return err
+		log.Fatalf("database error: %w", err)
 	}
 
-	repo, err := repository.NewRepo(cfg.FilePath)
-	if err != nil {
-		return cerror.ErrInMemoryRepo
+	if repo == nil {
+		repo, err = repository.NewRepo(cfg.FilePath)
+		if err != nil {
+			return cerror.ErrInMemoryRepo
+		}
 	}
 
-	srv := service.NewServiceURL(repo, db)
+	srv := service.NewServiceURL(repo)
 	hndlr := handler.NewHandler(srv, cfg.BaseURL)
 
 	newServer := &http.Server{

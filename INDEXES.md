@@ -212,7 +212,6 @@
 
 [Хабр | Разбираемся с пакетом Context в Golang](https://habr.com/ru/companies/nixys/articles/461723/) — о лучших практиках и подводных камнях при использовании контекста.
 
-
 ## Пакет database/sql. Взаимодействие с базами данных SQL
 
 ### Пакет gomock. Имитация баз данных
@@ -220,7 +219,6 @@
 [go.dev/github.com/golang/mock/gomock](https://pkg.go.dev/github.com/golang/mock/gomock) — документация пакета gomock.
 
 [GitHub | Testing with GoMock: A Tutorial](https://gist.github.com/thiagozs/4276432d12c2e5b152ea15b3f8b0012e) — руководство по тестированию с
-
 
 ### Абстрактный интерфейс и SQL-драйверы
 
@@ -241,3 +239,11 @@
 [Ardan Labs | Working with SQLite using Go and Python](https://www.ardanlabs.com/blog/2020/11/working-with-sqlite-using-go-python.html) — о работе с SQLite.
 
 [YouTube | Go Northwest | David Crawshaw SQLite and Go](https://www.youtube.com/watch?v=RqubKSF3wig&ab_channel=GoNorthwest) — видео о Go и SQLite.
+
+### Запросы к базе данных
+
+[SQL-запросы быстро.](https://habr.com/ru/articles/480838/)
+
+[Querying for data - The Go Programming Language.](https://go.dev/doc/database/querying)
+
+[Scanners and Valuers with Go.](https://husobee.github.io/golang/database/2015/06/12/scanner-valuer.html)
