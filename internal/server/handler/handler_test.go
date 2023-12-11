@@ -251,10 +251,6 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 		code int
 	}
 
-	var testUrl model.ReqURL
-	testUrl.ID = "1"
-	testUrl.OriginalURL = "www.netflix.com"
-
 	tests := []struct {
 		name string
 		url  model.ReqURL
@@ -262,7 +258,7 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 	}{
 		{
 			name: "test #1",
-			url:  testUrl,
+			url:  model.ReqURL{ID: "1", OriginalURL: "www.google.com"},
 			want: want{
 				code: 201,
 			},
@@ -276,7 +272,7 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 				log.Fatalf("error json: %d", err)
 			}
 
-			request := httptest.NewRequest(http.MethodPost, "/api/shorten/batch", strings.NewReader(string(jsonData)))
+			request := httptest.NewRequest(http.MethodPost, "/api/shorten/batch", bytes.NewBuffer(jsonData))
 			recorder := httptest.NewRecorder()
 
 			testRouter.ServeHTTP(recorder, request)
@@ -284,7 +280,7 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 			result := recorder.Result()
 			require.NoError(t, result.Body.Close())
 
-			//assert.Equal(t, test.want.code, result.StatusCode)
+			assert.Equal(t, test.want.code, result.StatusCode)
 		})
 	}
 }
