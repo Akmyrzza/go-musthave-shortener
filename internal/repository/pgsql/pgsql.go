@@ -8,7 +8,6 @@ import (
 	"github.com/akmyrzza/go-musthave-shortener/internal/model"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"log"
 	"time"
 )
 
@@ -118,22 +117,14 @@ func (s *StoreDB) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
 		return nil, fmt.Errorf("transaction error: %w", err)
 	}
 
-	defer func() {
-		if err := tx.Rollback(); err != nil {
-			log.Fatalf("error: roolback: %d", err)
-		}
-	}()
+	defer tx.Rollback()
 
 	stmt, err := tx.Prepare("INSERT INTO urls (originalURL, shortURL)" + "VALUES($1, $2)")
 	if err != nil {
 		return nil, fmt.Errorf("tx query error: %w", err)
 	}
 
-	defer func() {
-		if err := stmt.Close(); err != nil {
-			log.Fatalf("error: statement close: %d", err)
-		}
-	}()
+	defer stmt.Close()
 
 	for i, v := range urls {
 		_, err := stmt.Exec(v.OriginalURL, v.ShortURL)
@@ -143,5 +134,10 @@ func (s *StoreDB) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
 		urls[i].OriginalURL = ""
 	}
 
-	return urls, tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return nil, fmt.Errorf("commit error: %w", err)
+	}
+
+	return urls, nil
 }

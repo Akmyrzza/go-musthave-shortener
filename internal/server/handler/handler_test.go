@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/akmyrzza/go-musthave-shortener/internal/config"
-	"github.com/akmyrzza/go-musthave-shortener/internal/model"
 	"github.com/akmyrzza/go-musthave-shortener/internal/repository/pgsql"
 	"io"
 	"log"
@@ -234,6 +233,7 @@ func TestHandler_CreateIDJSON(t *testing.T) {
 }
 
 func TestHandler_CreateShortURLs(t *testing.T) {
+
 	cfg, err := config.InitConfig()
 	if err != nil {
 		log.Println(err)
@@ -242,6 +242,13 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 	testRepository, err := pgsql.InitDatabase(cfg.DatabasePath)
 	if err != nil {
 		log.Println(err)
+	}
+
+	if testRepository == nil {
+		testRepository, err = repository.NewRepo(cfg.FilePath)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 	testService := service.NewServiceURL(testRepository)
@@ -254,14 +261,19 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 		code int
 	}
 
+	type reqURL struct {
+		ID   string `json:"correlation_id"`
+		Path string `json:"original_url"`
+	}
+
 	tests := []struct {
 		name string
-		url  model.ReqURL
+		url  reqURL
 		want want
 	}{
 		{
 			name: "test #1",
-			url:  model.ReqURL{ID: "1", OriginalURL: "www.google.com"},
+			url:  reqURL{ID: "1", Path: "www.google.com"},
 			want: want{
 				code: 201,
 			},
