@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
+	"github.com/akmyrzza/go-musthave-shortener/internal/model"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"io"
 	"log"
@@ -110,6 +111,19 @@ func (s *inMemory) PingStore() error {
 	return errors.New("no ping")
 }
 
+func (s *inMemory) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
+	for _, v := range urls {
+		_, found := s.dataURL[v.ShortURL]
+		if found {
+			return nil, cerror.ErrAlreadyExist
+		}
+
+		s.dataURL[v.ShortURL] = v.OriginalURL
+	}
+
+	return urls, nil
+}
+
 func (s *localRepository) CreateShortURL(originalURL, shortURL string) error {
 	if err := s.inMemoryRepo.CreateShortURL(originalURL, shortURL); err != nil {
 		return err
@@ -128,6 +142,22 @@ func (s *localRepository) GetOriginalURL(originalURL string) (string, error) {
 
 func (s *localRepository) PingStore() error {
 	return errors.New("no ping")
+}
+
+func (s *localRepository) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
+	urls, err := s.inMemoryRepo.CreateShortURLs(urls)
+	if err != nil {
+		return nil, fmt.Errorf("saving in memory error: %w", err)
+	}
+
+	for i, v := range urls {
+		if err := saveInLocalDatabase(s, v.OriginalURL, v.ShortURL); err != nil {
+			return nil, fmt.Errorf("saving in file error: %w", err)
+		}
+		urls[i].OriginalURL = ""
+	}
+
+	return urls, nil
 }
 
 func saveInLocalDatabase(s *localRepository, originalURL, shortURL string) error {

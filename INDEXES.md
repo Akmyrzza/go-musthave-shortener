@@ -247,3 +247,12 @@
 [Querying for data - The Go Programming Language.](https://go.dev/doc/database/querying)
 
 [Scanners and Valuers with Go.](https://husobee.github.io/golang/database/2015/06/12/scanner-valuer.html)
+
+
+### Запись в базу данных
+
+[Памятка/шпаргалка по SQL.](https://habr.com/ru/articles/564390/)
+
+[Пакет SQLx.](https://github.com/jmoiron/sqlx)
+
+[GORM.](https://gorm.io/docs/)

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"github.com/akmyrzza/go-musthave-shortener/internal/model"
 	"io"
 	"net/http"
 	"net/url"
@@ -13,6 +14,7 @@ type ServiceURL interface {
 	CreateShortURL(originalURL string) (string, error)
 	GetOriginalURL(shortURL string) (string, error)
 	Ping() error
+	CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error)
 }
 
 type Handler struct {
@@ -27,7 +29,7 @@ func NewHandler(s ServiceURL, b string) *Handler {
 	}
 }
 
-func (h *Handler) CreateID(ctx *gin.Context) {
+func (h *Handler) CreateShortURL(ctx *gin.Context) {
 	reqBody, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "bad request body"})
@@ -48,7 +50,7 @@ func (h *Handler) CreateID(ctx *gin.Context) {
 	ctx.String(http.StatusCreated, resultString)
 }
 
-func (h *Handler) GetURL(ctx *gin.Context) {
+func (h *Handler) GetOriginalURL(ctx *gin.Context) {
 	id, exist := ctx.Params.Get("id")
 	if !exist {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "no id in params"})
@@ -104,4 +106,27 @@ func (h *Handler) Ping(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, "")
+}
+
+func (h *Handler) CreateShortURLs(ctx *gin.Context) {
+	reqBody, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "bad request body"})
+		return
+	}
+
+	var tmpURLs []model.ReqURL
+
+	if err = json.Unmarshal(reqBody, &tmpURLs); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "bad request body"})
+		return
+	}
+
+	tmpURLs, err = h.Service.CreateShortURLs(tmpURLs)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
+	}
+
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusCreated, tmpURLs)
 }

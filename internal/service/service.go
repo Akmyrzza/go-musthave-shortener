@@ -3,17 +3,19 @@ package service
 import (
 	"errors"
 	"fmt"
+	"github.com/akmyrzza/go-musthave-shortener/internal/model"
 	"math/rand"
 
 	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 )
 
-var RandLength = 8
+var RandLength = 16
 
 type Repository interface {
 	CreateShortURL(shortURL, originalURL string) error
 	GetOriginalURL(originalURL string) (string, error)
 	PingStore() error
+	CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error)
 }
 
 type ServiceURL struct {
@@ -48,6 +50,19 @@ func (s *ServiceURL) GetOriginalURL(shortURL string) (string, error) {
 
 func (s *ServiceURL) Ping() error {
 	return s.Repository.PingStore()
+}
+
+func (s *ServiceURL) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
+	for i, _ := range urls {
+		shortURL := randString()
+		urls[i].ShortURL = shortURL
+	}
+
+	res, err := s.Repository.CreateShortURLs(urls)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func randString() string {

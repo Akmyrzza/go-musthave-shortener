@@ -27,7 +27,7 @@ func TestHandler_CreateID(t *testing.T) {
 	testHandler := NewHandler(testService, "http://localhost:8080")
 
 	testRouter := gin.Default()
-	testRouter.POST("/", testHandler.CreateID)
+	testRouter.POST("/", testHandler.CreateShortURL)
 
 	type want struct {
 		code        int
@@ -90,8 +90,8 @@ func TestHandler_GetURL(t *testing.T) {
 	testHandler := NewHandler(testService, "http://localhost:8080")
 	testRouter := gin.Default()
 
-	testRouter.POST("/", testHandler.CreateID)
-	testRouter.GET("/:id", testHandler.GetURL)
+	testRouter.POST("/", testHandler.CreateShortURL)
+	testRouter.GET("/:id", testHandler.GetOriginalURL)
 
 	type want struct {
 		code     int

@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/akmyrzza/go-musthave-shortener/internal/model"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
-	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"time"
 )
 
@@ -108,4 +109,30 @@ func (s *StoreDB) GetOriginalURL(shortURL string) (string, error) {
 	}
 
 	return url, nil
+}
+
+func (s *StoreDB) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
+	tx, err := s.DB.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("transaction error: %w", err)
+	}
+
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare("INSERT INTO urls (originalURL, shortURL)" + "VALUES($1, $2)")
+	if err != nil {
+		return nil, fmt.Errorf("tx query error: %w", err)
+	}
+
+	defer stmt.Close()
+
+	for i, v := range urls {
+		_, err := stmt.Exec(v.OriginalURL, v.ShortURL)
+		if err != nil {
+			return nil, fmt.Errorf("statement exec error: %w", err)
+		}
+		urls[i].OriginalURL = ""
+	}
+
+	return urls, tx.Commit()
 }
