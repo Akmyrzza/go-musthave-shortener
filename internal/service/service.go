@@ -53,7 +53,7 @@ func (s *ServiceURL) Ping() error {
 }
 
 func (s *ServiceURL) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
-	for i, _ := range urls {
+	for i := range urls {
 		shortURL := randString()
 		urls[i].ShortURL = shortURL
 	}
