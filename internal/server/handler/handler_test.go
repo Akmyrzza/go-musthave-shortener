@@ -3,8 +3,10 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/akmyrzza/go-musthave-shortener/internal/model"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -16,6 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+var RandLength int = 16
 
 func TestHandler_CreateShortURL(t *testing.T) {
 	testRepository, err := repository.NewRepo("")
@@ -231,13 +235,6 @@ func TestHandler_CreateIDJSON(t *testing.T) {
 }
 
 func TestHandler_CreateShortURLs(t *testing.T) {
-	//ctrl := gomock.NewController(t)
-	//m := mocks.NewMockRepository(ctrl)
-	//m.EXPECT().CreateShortURLs(gomock.Any()).Return([]model.ReqURL{{ID: "1", ShortURL: "ascnzhjxc"}}, nil)
-
-	//testService := service.NewServiceURL(m)
-	//http.HandleFunc("api/shorten/batch", newHandlerTest)
-
 	type want struct {
 		code int
 	}
@@ -264,13 +261,12 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 				Original_url: "www.google.com",
 			}
 
-			_, err := json.Marshal(sample)
+			jsonData, err := json.Marshal(sample)
 			if err != nil {
 				log.Println(err)
 			}
 
-			request := httptest.NewRequest(http.MethodPost, "/api/shorten/batch", nil)
-			//request, _ := http.NewRequest(http.MethodPost, "/api/shorten/batch", bytes.NewBuffer(jsonData))
+			request := httptest.NewRequest(http.MethodPost, "/api/shorten/batch", bytes.NewBuffer(jsonData))
 			request.Header.Set("Content-Type", "application/json")
 			recorder := httptest.NewRecorder()
 
@@ -280,26 +276,49 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 			resp := recorder.Result()
 			require.NoError(t, resp.Body.Close())
 			assert.Equal(t, test.want.code, resp.StatusCode)
-
-			//jsonData, err := json.Marshal(test.url)
-			//if err != nil {
-			//	log.Fatalf("error json: %d", err)
-			//}
-			//
-			//request := httptest.NewRequest(http.MethodPost, "/api/shorten/batch", bytes.NewBuffer(jsonData))
-			//request.Header.Set("Content-Type", "application/json")
-			//recorder := httptest.NewRecorder()
-			//
-			//testRouter.ServeHTTP(recorder, request)
-			//
-			//result := recorder.Result()
-			//require.NoError(t, result.Body.Close())
-			//
-			//assert.Equal(t, test.want.code, result.StatusCode)
 		})
 	}
 }
 
 func newHandlerTest(w http.ResponseWriter, r *http.Request) {
+	reqBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var tmpURLs []model.ReqURL
+
+	if err = json.Unmarshal(reqBody, &tmpURLs); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	for i, _ := range tmpURLs {
+		randURL := randString()
+		tmpURLs[i].ShortURL = randURL
+		tmpURLs[i].OriginalURL = ""
+	}
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	jsonRes, err := json.Marshal(tmpURLs)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	w.Write(jsonRes)
+}
+
+func randString() string {
+	letterBytes := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	b := make([]byte, RandLength)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
 }
