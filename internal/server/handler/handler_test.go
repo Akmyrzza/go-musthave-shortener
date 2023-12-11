@@ -250,15 +250,15 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 	}
 
 	type Samples struct {
-		ID           string `json:"correlation_id"`
-		Original_url string `json:"original_url"`
+		Correlation_id string `json:"correlation_id"`
+		Original_url   string `json:"original_url"`
 	}
 
 	for _, test := range tests {
 		t.Run("test mock", func(t *testing.T) {
 			sample := Samples{
-				ID:           "1",
-				Original_url: "www.google.com",
+				Correlation_id: "1",
+				Original_url:   "www.google.com",
 			}
 
 			jsonData, err := json.Marshal(sample)
