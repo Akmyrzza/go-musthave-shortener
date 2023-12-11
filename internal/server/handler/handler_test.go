@@ -3,6 +3,9 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/akmyrzza/go-musthave-shortener/internal/config"
+	"github.com/akmyrzza/go-musthave-shortener/internal/model"
+	"github.com/akmyrzza/go-musthave-shortener/internal/repository/pgsql"
 	"io"
 	"log"
 	"net/http"
@@ -230,54 +233,58 @@ func TestHandler_CreateIDJSON(t *testing.T) {
 	}
 }
 
-//func TestHandler_CreateShortURLs(t *testing.T) {
-//	pgxSource := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", "localhost", 5432, "postgres", "mysecret", "postgresdb")
-//
-//	testRepository, err := pgsql.InitDatabase(pgxSource)
-//	if err != nil {
-//		log.Println(err)
-//	}
-//
-//	testService := service.NewServiceURL(testRepository)
-//	testHandler := NewHandler(testService, "http://localhost:8080")
-//
-//	testRouter := gin.Default()
-//	testRouter.POST("/api/shorten/batch", testHandler.CreateShortURLs)
-//
-//	type want struct {
-//		code int
-//	}
-//
-//	tests := []struct {
-//		name string
-//		url  model.ReqURL
-//		want want
-//	}{
-//		{
-//			name: "test #1",
-//			url:  model.ReqURL{ID: "1", OriginalURL: "www.google.com"},
-//			want: want{
-//				code: 201,
-//			},
-//		},
-//	}
-//
-//	for _, test := range tests {
-//		t.Run(test.name, func(t *testing.T) {
-//			jsonData, err := json.Marshal(test.url)
-//			if err != nil {
-//				log.Fatalf("error json: %d", err)
-//			}
-//
-//			request := httptest.NewRequest(http.MethodPost, "/api/shorten/batch", bytes.NewBuffer(jsonData))
-//			recorder := httptest.NewRecorder()
-//
-//			testRouter.ServeHTTP(recorder, request)
-//
-//			result := recorder.Result()
-//			require.NoError(t, result.Body.Close())
-//
-//			assert.Equal(t, test.want.code, result.StatusCode)
-//		})
-//	}
-//}
+func TestHandler_CreateShortURLs(t *testing.T) {
+	cfg, err := config.InitConfig()
+	if err != nil {
+		log.Println(err)
+	}
+
+	testRepository, err := pgsql.InitDatabase(cfg.DatabasePath)
+	if err != nil {
+		log.Println(err)
+	}
+
+	testService := service.NewServiceURL(testRepository)
+	testHandler := NewHandler(testService, "http://localhost:8080")
+
+	testRouter := gin.Default()
+	testRouter.POST("/api/shorten/batch", testHandler.CreateShortURLs)
+
+	type want struct {
+		code int
+	}
+
+	tests := []struct {
+		name string
+		url  model.ReqURL
+		want want
+	}{
+		{
+			name: "test #1",
+			url:  model.ReqURL{ID: "1", OriginalURL: "www.google.com"},
+			want: want{
+				code: 201,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			jsonData, err := json.Marshal(test.url)
+			if err != nil {
+				log.Fatalf("error json: %d", err)
+			}
+
+			request := httptest.NewRequest(http.MethodPost, "/api/shorten/batch", bytes.NewBuffer(jsonData))
+			request.Header.Set("Content-Type", "application/json")
+			recorder := httptest.NewRecorder()
+
+			testRouter.ServeHTTP(recorder, request)
+
+			result := recorder.Result()
+			require.NoError(t, result.Body.Close())
+
+			assert.Equal(t, test.want.code, result.StatusCode)
+		})
+	}
+}
