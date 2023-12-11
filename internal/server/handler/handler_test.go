@@ -3,6 +3,9 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"github.com/akmyrzza/go-musthave-shortener/internal/model"
+	"github.com/akmyrzza/go-musthave-shortener/internal/repository/pgsql"
 	"io"
 	"log"
 	"net/http"
@@ -17,7 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestHandler_CreateID(t *testing.T) {
+func TestHandler_CreateShortURL(t *testing.T) {
 	testRepository, err := repository.NewRepo("")
 	if err != nil {
 		log.Fatalf("error in repo: %d", err)
@@ -81,7 +84,7 @@ func TestHandler_CreateID(t *testing.T) {
 	}
 }
 
-func TestHandler_GetURL(t *testing.T) {
+func TestHandler_GetOriginalURL(t *testing.T) {
 	testRepository, err := repository.NewRepo("")
 	if err != nil {
 		log.Fatalf("error in repo: %d", err)
@@ -226,6 +229,62 @@ func TestHandler_CreateIDJSON(t *testing.T) {
 			require.NoError(t, result.Body.Close())
 			assert.Equal(t, test.want.code, result.StatusCode)
 			assert.Equal(t, test.want.contentType, result.Header.Get("Content-Type"))
+		})
+	}
+}
+
+func TestHandler_CreateShortURLs(t *testing.T) {
+	pgxSource := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", "localhost", 5432, "postgres", "mysecret", "postgresdb")
+
+	testRepository, err := pgsql.InitDatabase(pgxSource)
+	if err != nil {
+		log.Println(err)
+	}
+
+	testService := service.NewServiceURL(testRepository)
+	testHandler := NewHandler(testService, "http://localhost:8080")
+
+	testRouter := gin.Default()
+	testRouter.POST("/api/shorten/batch", testHandler.CreateShortURLs)
+
+	type want struct {
+		code int
+	}
+
+	var testUrl model.ReqURL
+	testUrl.ID = "1"
+	testUrl.OriginalURL = "www.netflix.com"
+
+	tests := []struct {
+		name string
+		url  model.ReqURL
+		want want
+	}{
+		{
+			name: "test #1",
+			url:  testUrl,
+			want: want{
+				code: 201,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			jsonData, err := json.Marshal(test.url)
+			if err != nil {
+				log.Fatalf("error json: %d", err)
+			}
+
+			request := httptest.NewRequest(http.MethodPost, "/api/shorten/batch", strings.NewReader(string(jsonData)))
+			recorder := httptest.NewRecorder()
+
+			testRouter.ServeHTTP(recorder, request)
+
+			result := recorder.Result()
+			require.NoError(t, result.Body.Close())
+
+			//assert.Equal(t, test.want.code, result.StatusCode)
 		})
 	}
 }
