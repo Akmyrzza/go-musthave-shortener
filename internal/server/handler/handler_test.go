@@ -19,8 +19,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var RandLength int = 16
-
 func TestHandler_CreateShortURL(t *testing.T) {
 	testRepository, err := repository.NewRepo("")
 	if err != nil {
@@ -295,8 +293,8 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 	}
 
 	type Sample struct {
-		Correlation_id string `json:"correlation_id"`
-		Original_url   string `json:"original_url"`
+		Correlation_ID string `json:"correlation_id"`
+		Original_URL   string `json:"original_url"`
 	}
 
 	for _, test := range tests {
@@ -304,8 +302,8 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 
 			samples := []Sample{
 				{
-					Correlation_id: "1",
-					Original_url:   test.url,
+					Correlation_ID: "1",
+					Original_URL:   test.url,
 				},
 			}
 
