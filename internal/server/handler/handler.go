@@ -125,6 +125,16 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 	tmpURLs, err = h.Service.CreateShortURLs(tmpURLs)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
+		return
+	}
+
+	for i, v := range tmpURLs {
+		resultString, err := url.JoinPath(h.BaseURL, v.ShortURL)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
+			return
+		}
+		tmpURLs[i].ShortURL = resultString
 	}
 
 	ctx.Header("Content-Type", "application/json")
