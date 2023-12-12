@@ -293,8 +293,8 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 	}
 
 	type Sample struct {
-		Correlation_ID string `json:"correlation_id"`
-		Original_URL   string `json:"original_url"`
+		CorrelationID string `json:"correlation_id"`
+		OriginalURL   string `json:"original_url"`
 	}
 
 	for _, test := range tests {
@@ -302,8 +302,8 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 
 			samples := []Sample{
 				{
-					Correlation_ID: "1",
-					Original_URL:   test.url,
+					CorrelationID: "1",
+					OriginalURL:   test.url,
 				},
 			}
 
