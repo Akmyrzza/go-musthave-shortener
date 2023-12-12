@@ -86,10 +86,17 @@ func TestHandler_CreateShortURL(t *testing.T) {
 }
 
 func TestHandler_GetOriginalURL(t *testing.T) {
-	testRepository, err := repository.NewRepo("")
+	pgxSource := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", "localhost", 5432, "postgres", "mysecret", "postgresdb")
+	testRepository, err := pgsql.InitDatabase(pgxSource)
 	if err != nil {
-		log.Fatalf("error in repo: %d", err)
+		log.Println(err)
 	}
+
+	if testRepository == nil {
+		testRepository, err = repository.NewRepo("")
+		log.Println(err)
+	}
+
 	testService := service.NewServiceURL(testRepository)
 	testHandler := NewHandler(testService, "http://localhost:8080")
 	testRouter := gin.Default()
