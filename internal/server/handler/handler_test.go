@@ -280,9 +280,13 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 			request.Header.Set("Content-Type", "application/json")
 			recorder := httptest.NewRecorder()
 
-			h := http.HandlerFunc(newHandlerTest)
-			h.ServeHTTP(recorder, request)
+			r := gin.Default()
+			r.POST("/api/shorten/batch", newHandlerTest)
+			r.GET("/:id", GetOriginalURL)
 
+			//h := http.HandlerFunc(newHandlerTest)
+			//h.ServeHTTP(recorder, request)
+			r.ServeHTTP(recorder, request)
 			resp := recorder.Result()
 			require.NoError(t, resp.Body.Close())
 			assert.Equal(t, test.want.code, resp.StatusCode)
@@ -290,38 +294,59 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 	}
 }
 
-func newHandlerTest(w http.ResponseWriter, r *http.Request) {
-	reqBody, err := io.ReadAll(r.Body)
+var tmpArray []model.ReqURL
+
+func newHandlerTest(ctx *gin.Context) {
+	reqBody, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "result path error"})
 		return
 	}
 
-	var tmpURLs []model.ReqURL
-
-	if err = json.Unmarshal(reqBody, &tmpURLs); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	if err = json.Unmarshal(reqBody, &tmpArray); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "result path error"})
 		return
 	}
 
-	for i, _ := range tmpURLs {
+	var tmpArrayCopy []model.ReqURL
+	copy(tmpArrayCopy, tmpArray)
+	for i, _ := range tmpArrayCopy {
 		randURL := randString()
-		tmpURLs[i].ShortURL = randURL
-		tmpURLs[i].OriginalURL = ""
+		tmpArrayCopy[i].ShortURL = randURL
+		tmpArrayCopy[i].OriginalURL = ""
+		tmpArray[i].ShortURL = randURL
 	}
 
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "result path error"})
 	}
 
-	jsonRes, err := json.Marshal(tmpURLs)
+	jsonRes, err := json.Marshal(tmpArrayCopy)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "result path error"})
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(jsonRes)
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusCreated, jsonRes)
+}
+
+func GetOriginalURL(ctx *gin.Context) {
+	id, exist := ctx.Params.Get("id")
+	if !exist {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "no id in params"})
+		return
+	}
+
+	for _, v := range tmpArray {
+		if v.ShortURL == id {
+			ctx.Header("Location", v.OriginalURL)
+			ctx.Header("Content-Type", "text/plain")
+			ctx.JSON(http.StatusTemporaryRedirect, nil)
+		}
+	}
+
+	ctx.JSON(http.StatusBadRequest, nil)
+	return
 }
 
 func randString() string {
