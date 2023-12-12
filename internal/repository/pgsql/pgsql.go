@@ -95,6 +95,9 @@ func (s *StoreDB) CreateShortURL(originalURL, shortURL string) (string, error) {
 		return "", fmt.Errorf("error: db query exec: %w", err)
 	}
 
+	if id == shortURL {
+		return "", nil
+	}
 	return id, nil
 }
 
