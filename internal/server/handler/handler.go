@@ -93,16 +93,19 @@ func (h *Handler) CreateIDJSON(ctx *gin.Context) {
 	id, exist, err := h.Service.CreateShortURL(stURL.URL)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
+		return
 	}
 
 	resultString, err := url.JoinPath(h.BaseURL, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "url joining"})
+		return
 	}
 
 	ctx.Header("Content-Type", "application/json")
 	if exist {
 		ctx.JSON(http.StatusConflict, gin.H{"result": resultString})
+		return
 	}
 	ctx.JSON(http.StatusCreated, gin.H{"result": resultString})
 }
