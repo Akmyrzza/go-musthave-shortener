@@ -3,10 +3,10 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/akmyrzza/go-musthave-shortener/internal/model"
+	"fmt"
+	"github.com/akmyrzza/go-musthave-shortener/internal/repository/pgsql"
 	"io"
 	"log"
-	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -235,9 +235,18 @@ func TestHandler_CreateIDJSON(t *testing.T) {
 }
 
 func TestHandler_CreateShortURLs(t *testing.T) {
-	testRepository, err := repository.NewRepo("")
+	pgxSource := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", "localhost", 5432, "postgres", "mysecret", "postgresdb")
+
+	testRepository, err := pgsql.InitDatabase(pgxSource)
 	if err != nil {
-		log.Fatalf("error in repo: %d", err)
+		log.Println(err)
+	}
+
+	if testRepository == nil {
+		testRepository, err = repository.NewRepo("")
+		if err != nil {
+			log.Fatalf("error in repo: %d", err)
+		}
 	}
 
 	testService := service.NewServiceURL(testRepository)
@@ -308,126 +317,4 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 			assert.Equal(t, test.want.code, result.StatusCode)
 		})
 	}
-
-	//type want struct {
-	//	code int
-	//}
-	//
-	//tests := []struct {
-	//	want want
-	//}{
-	//	{
-	//		want: want{
-	//			code: 201,
-	//		},
-	//	},
-	//}
-	//
-	//type Sample struct {
-	//	Correlation_id string `json:"correlation_id"`
-	//	Original_url   string `json:"original_url"`
-	//}
-	//
-	//for _, test := range tests {
-	//	t.Run("test mock", func(t *testing.T) {
-	//		samples := []Sample{
-	//			{
-	//				Correlation_id: "1",
-	//				Original_url:   "www.google.com",
-	//			},
-	//			{
-	//				Correlation_id: "2",
-	//				Original_url:   "www.netflix.com",
-	//			},
-	//			{
-	//				Correlation_id: "3",
-	//				Original_url:   "www.mail.ru",
-	//			},
-	//		}
-	//
-	//		jsonData, err := json.Marshal(samples)
-	//		if err != nil {
-	//			log.Println(err)
-	//		}
-	//
-	//		request := httptest.NewRequest(http.MethodPost, "/api/shorten/batch", bytes.NewBuffer(jsonData))
-	//		request.Header.Set("Content-Type", "application/json")
-	//		recorder := httptest.NewRecorder()
-	//
-	//		r := gin.Default()
-	//		r.POST("/api/shorten/batch", newHandlerTest)
-	//		r.GET("/:id", GetOriginalURL)
-	//
-	//		//h := http.HandlerFunc(newHandlerTest)
-	//		//h.ServeHTTP(recorder, request)
-	//		r.ServeHTTP(recorder, request)
-	//		resp := recorder.Result()
-	//		require.NoError(t, resp.Body.Close())
-	//		assert.Equal(t, test.want.code, resp.StatusCode)
-	//	})
-	//}
-}
-
-var tmpArray []model.ReqURL
-
-func newHandlerTest(ctx *gin.Context) {
-	reqBody, err := io.ReadAll(ctx.Request.Body)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "result path error"})
-		return
-	}
-
-	if err = json.Unmarshal(reqBody, &tmpArray); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "result path error"})
-		return
-	}
-
-	var tmpArrayCopy []model.ReqURL
-	copy(tmpArrayCopy, tmpArray)
-	for i, _ := range tmpArrayCopy {
-		randURL := randString()
-		tmpArrayCopy[i].ShortURL = randURL
-		tmpArrayCopy[i].OriginalURL = ""
-		tmpArray[i].ShortURL = randURL
-	}
-
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "result path error"})
-	}
-
-	jsonRes, err := json.Marshal(tmpArrayCopy)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "result path error"})
-	}
-
-	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusCreated, jsonRes)
-}
-
-func GetOriginalURL(ctx *gin.Context) {
-	id, exist := ctx.Params.Get("id")
-	if !exist {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "no id in params"})
-		return
-	}
-
-	for _, v := range tmpArray {
-		if v.ShortURL == id {
-			ctx.Header("Location", v.OriginalURL)
-			ctx.Header("Content-Type", "text/plain")
-			ctx.JSON(http.StatusTemporaryRedirect, nil)
-		}
-	}
-
-	ctx.JSON(http.StatusBadRequest, nil)
-	return
-}
-
-func randString() string {
-	letterBytes := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	b := make([]byte, RandLength)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
-	}
-	return string(b)
 }
