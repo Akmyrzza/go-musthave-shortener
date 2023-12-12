@@ -11,7 +11,7 @@ import (
 )
 
 type ServiceURL interface {
-	CreateShortURL(originalURL string) (string, error)
+	CreateShortURL(originalURL string) (string, bool, error)
 	GetOriginalURL(shortURL string) (string, error)
 	Ping() error
 	CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error)
@@ -36,17 +36,23 @@ func (h *Handler) CreateShortURL(ctx *gin.Context) {
 		return
 	}
 
-	id, err := h.Service.CreateShortURL(string(reqBody))
+	id, exist, err := h.Service.CreateShortURL(string(reqBody))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
+		return
 	}
 
 	resultString, err := url.JoinPath(h.BaseURL, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "result path error"})
+		return
 	}
 
 	ctx.Header("Content-Type", "text/plain")
+	if exist {
+		ctx.String(http.StatusConflict, resultString)
+		return
+	}
 	ctx.String(http.StatusCreated, resultString)
 }
 
@@ -84,7 +90,7 @@ func (h *Handler) CreateIDJSON(ctx *gin.Context) {
 		return
 	}
 
-	id, err := h.Service.CreateShortURL(stURL.URL)
+	id, exist, err := h.Service.CreateShortURL(stURL.URL)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
 	}
@@ -95,6 +101,9 @@ func (h *Handler) CreateIDJSON(ctx *gin.Context) {
 	}
 
 	ctx.Header("Content-Type", "application/json")
+	if exist {
+		ctx.JSON(http.StatusConflict, gin.H{"result": resultString})
+	}
 	ctx.JSON(http.StatusCreated, gin.H{"result": resultString})
 }
 

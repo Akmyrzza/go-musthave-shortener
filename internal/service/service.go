@@ -12,7 +12,7 @@ import (
 var RandLength = 16
 
 type Repository interface {
-	CreateShortURL(shortURL, originalURL string) error
+	CreateShortURL(shortURL, originalURL string) (string, error)
 	GetOriginalURL(originalURL string) (string, error)
 	PingStore() error
 	CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error)
@@ -28,18 +28,22 @@ func NewServiceURL(r Repository) *ServiceURL {
 	}
 }
 
-func (s *ServiceURL) CreateShortURL(originalURL string) (string, error) {
+func (s *ServiceURL) CreateShortURL(originalURL string) (string, bool, error) {
 	for {
 		shortURL := randString()
-		err := s.Repository.CreateShortURL(originalURL, shortURL)
+		id, err := s.Repository.CreateShortURL(originalURL, shortURL)
 		if err != nil {
 			if errors.Is(err, cerror.ErrAlreadyExist) {
 				continue
 			}
-			return "", fmt.Errorf("creating id error: %w", err)
+			return "", false, fmt.Errorf("creating id error: %w", err)
 		}
 
-		return shortURL, nil
+		if id == "" {
+			return shortURL, false, nil
+		}
+
+		return id, true, nil
 	}
 }
 

@@ -256,3 +256,12 @@
 [Пакет SQLx.](https://github.com/jmoiron/sqlx)
 
 [GORM.](https://gorm.io/docs/)
+
+
+## Пакет errors. Обработка ошибок
+
+### Интроспекция ошибок
+
+[go.dev/errors](https://pkg.go.dev/errors) — документация пакета errors.
+
+[bitfieldconsulting | Error wrapping in Go](https://bitfieldconsulting.com/golang/wrapping-errors) — упаковка ошибок в Go.

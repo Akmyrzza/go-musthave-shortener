@@ -87,15 +87,15 @@ func initFileStore(m *inMemory, filePath string) (*localRepository, error) {
 	return ptrLocal, nil
 }
 
-func (s *inMemory) CreateShortURL(originalURL, shortURL string) error {
+func (s *inMemory) CreateShortURL(originalURL, shortURL string) (string, error) {
 	_, found := s.dataURL[shortURL]
 	if found {
-		return cerror.ErrAlreadyExist
+		return "", cerror.ErrAlreadyExist
 	}
 
 	s.dataURL[shortURL] = originalURL
 
-	return nil
+	return "", nil
 }
 
 func (s *inMemory) GetOriginalURL(id string) (string, error) {
@@ -124,16 +124,17 @@ func (s *inMemory) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) 
 	return urls, nil
 }
 
-func (s *localRepository) CreateShortURL(originalURL, shortURL string) error {
-	if err := s.inMemoryRepo.CreateShortURL(originalURL, shortURL); err != nil {
-		return err
+func (s *localRepository) CreateShortURL(originalURL, shortURL string) (string, error) {
+	id, err := s.inMemoryRepo.CreateShortURL(originalURL, shortURL)
+	if err != nil {
+		return id, err
 	}
 
 	if err := saveInLocalDatabase(s, originalURL, shortURL); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return "", nil
 }
 
 func (s *localRepository) GetOriginalURL(originalURL string) (string, error) {

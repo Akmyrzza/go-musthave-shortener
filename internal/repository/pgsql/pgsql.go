@@ -64,7 +64,7 @@ func tableExist(db *sql.DB) error {
 func createTable(db *sql.DB, tableName string) error {
 	query := `CREATE TABLE ` + tableName + ` (
 				id SERIAL PRIMARY KEY,
-				originalURL VARCHAR(255) NOT NULL,
+				originalURL VARCHAR(255) UNIQUE NOT NULL,
 				shortURL VARCHAR(255) UNIQUE NOT NULL
 				);`
 
@@ -86,15 +86,16 @@ func (s *StoreDB) PingStore() error {
 	return nil
 }
 
-func (s *StoreDB) CreateShortURL(originalURL, shortURL string) error {
-	query := `INSERT INTO urls (originalURL, shortURL) VALUES ($1, $2)`
+func (s *StoreDB) CreateShortURL(originalURL, shortURL string) (string, error) {
+	query := `INSERT INTO urls (originalURL, shortURL) VALUES ($1, $2) ON CONFLICT (originalURL) DO UPDATE SET originalURL=$1 RETURNING shortURL`
 
-	_, err := s.DB.Exec(query, originalURL, shortURL)
+	var id string
+	err := s.DB.QueryRow(query, originalURL, shortURL).Scan(&id)
 	if err != nil {
-		return fmt.Errorf("error: db query exec: %w", err)
+		return "", fmt.Errorf("error: db query exec: %w", err)
 	}
 
-	return nil
+	return id, nil
 }
 
 func (s *StoreDB) GetOriginalURL(shortURL string) (string, error) {
