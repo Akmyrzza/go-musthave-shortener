@@ -235,14 +235,43 @@ func TestHandler_CreateIDJSON(t *testing.T) {
 }
 
 func TestHandler_CreateShortURLs(t *testing.T) {
+	testRepository, err := repository.NewRepo("")
+	if err != nil {
+		log.Fatalf("error in repo: %d", err)
+	}
+
+	testService := service.NewServiceURL(testRepository)
+	testHandler := NewHandler(testService, "http://localhost:8080")
+
+	testRouter := gin.Default()
+	testRouter.POST("/api/shorten/batch", testHandler.CreateShortURLs)
+
 	type want struct {
 		code int
 	}
 
 	tests := []struct {
+		name string
+		url  string
 		want want
 	}{
 		{
+			name: "test #1",
+			url:  "www.google.com",
+			want: want{
+				code: 201,
+			},
+		},
+		{
+			name: "test #2",
+			url:  "www.yandex.com",
+			want: want{
+				code: 201,
+			},
+		},
+		{
+			name: "test #3",
+			url:  "www.netflix.com",
 			want: want{
 				code: 201,
 			},
@@ -255,19 +284,12 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run("test mock", func(t *testing.T) {
+		t.Run(test.name, func(t *testing.T) {
+
 			samples := []Sample{
 				{
 					Correlation_id: "1",
-					Original_url:   "www.google.com",
-				},
-				{
-					Correlation_id: "2",
-					Original_url:   "www.netflix.com",
-				},
-				{
-					Correlation_id: "3",
-					Original_url:   "www.mail.ru",
+					Original_url:   test.url,
 				},
 			}
 
@@ -275,23 +297,75 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 			if err != nil {
 				log.Println(err)
 			}
-
 			request := httptest.NewRequest(http.MethodPost, "/api/shorten/batch", bytes.NewBuffer(jsonData))
-			request.Header.Set("Content-Type", "application/json")
 			recorder := httptest.NewRecorder()
 
-			r := gin.Default()
-			r.POST("/api/shorten/batch", newHandlerTest)
-			r.GET("/:id", GetOriginalURL)
+			testRouter.ServeHTTP(recorder, request)
 
-			//h := http.HandlerFunc(newHandlerTest)
-			//h.ServeHTTP(recorder, request)
-			r.ServeHTTP(recorder, request)
-			resp := recorder.Result()
-			require.NoError(t, resp.Body.Close())
-			assert.Equal(t, test.want.code, resp.StatusCode)
+			result := recorder.Result()
+			require.NoError(t, result.Body.Close())
+
+			assert.Equal(t, test.want.code, result.StatusCode)
 		})
 	}
+
+	//type want struct {
+	//	code int
+	//}
+	//
+	//tests := []struct {
+	//	want want
+	//}{
+	//	{
+	//		want: want{
+	//			code: 201,
+	//		},
+	//	},
+	//}
+	//
+	//type Sample struct {
+	//	Correlation_id string `json:"correlation_id"`
+	//	Original_url   string `json:"original_url"`
+	//}
+	//
+	//for _, test := range tests {
+	//	t.Run("test mock", func(t *testing.T) {
+	//		samples := []Sample{
+	//			{
+	//				Correlation_id: "1",
+	//				Original_url:   "www.google.com",
+	//			},
+	//			{
+	//				Correlation_id: "2",
+	//				Original_url:   "www.netflix.com",
+	//			},
+	//			{
+	//				Correlation_id: "3",
+	//				Original_url:   "www.mail.ru",
+	//			},
+	//		}
+	//
+	//		jsonData, err := json.Marshal(samples)
+	//		if err != nil {
+	//			log.Println(err)
+	//		}
+	//
+	//		request := httptest.NewRequest(http.MethodPost, "/api/shorten/batch", bytes.NewBuffer(jsonData))
+	//		request.Header.Set("Content-Type", "application/json")
+	//		recorder := httptest.NewRecorder()
+	//
+	//		r := gin.Default()
+	//		r.POST("/api/shorten/batch", newHandlerTest)
+	//		r.GET("/:id", GetOriginalURL)
+	//
+	//		//h := http.HandlerFunc(newHandlerTest)
+	//		//h.ServeHTTP(recorder, request)
+	//		r.ServeHTTP(recorder, request)
+	//		resp := recorder.Result()
+	//		require.NoError(t, resp.Body.Close())
+	//		assert.Equal(t, test.want.code, resp.StatusCode)
+	//	})
+	//}
 }
 
 var tmpArray []model.ReqURL
