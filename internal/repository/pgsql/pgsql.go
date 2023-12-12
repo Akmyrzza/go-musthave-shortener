@@ -120,7 +120,7 @@ func (s *StoreDB) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
 
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Printf("error rollback: %w", err)
+			log.Printf("error rollback: %d", err)
 		}
 	}()
 
@@ -131,7 +131,7 @@ func (s *StoreDB) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
 
 	defer func() {
 		if err := stmt.Close(); err != nil {
-			log.Printf("error statement: %w", err)
+			log.Printf("error statement: %d", err)
 		}
 	}()
 
