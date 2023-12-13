@@ -98,7 +98,7 @@ func (s *inMemory) CreateShortURL(userID, originalURL, shortURL string) (string,
 	return "", nil
 }
 
-func (s *inMemory) GetOriginalURL(userID, id string) (string, error) {
+func (s *inMemory) GetOriginalURL(id string) (string, error) {
 	originalURL, ok := s.dataURL[id]
 	if !ok {
 		return "", fmt.Errorf("not found in base")
@@ -151,8 +151,8 @@ func (s *localRepository) CreateShortURL(userID, originalURL, shortURL string) (
 	return "", nil
 }
 
-func (s *localRepository) GetOriginalURL(userID, originalURL string) (string, error) {
-	return s.inMemoryRepo.GetOriginalURL(userID, originalURL)
+func (s *localRepository) GetOriginalURL(originalURL string) (string, error) {
+	return s.inMemoryRepo.GetOriginalURL(originalURL)
 }
 
 func (s *localRepository) PingStore() error {

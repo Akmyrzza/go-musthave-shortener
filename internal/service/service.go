@@ -13,7 +13,7 @@ var RandLength = 16
 
 type Repository interface {
 	CreateShortURL(userID, shortURL, originalURL string) (string, error)
-	GetOriginalURL(userID, originalURL string) (string, error)
+	GetOriginalURL(originalURL string) (string, error)
 	PingStore() error
 	CreateShortURLs(userID string, urls []model.ReqURL) ([]model.ReqURL, error)
 	GetAllURLs(userID string) ([]model.ResURL, error)
@@ -48,8 +48,8 @@ func (s *ServiceURL) CreateShortURL(userID, originalURL string) (string, bool, e
 	}
 }
 
-func (s *ServiceURL) GetOriginalURL(userID, shortURL string) (string, error) {
-	originalURL, ok := s.Repository.GetOriginalURL(userID, shortURL)
+func (s *ServiceURL) GetOriginalURL(shortURL string) (string, error) {
+	originalURL, ok := s.Repository.GetOriginalURL(shortURL)
 	return originalURL, ok
 }
 

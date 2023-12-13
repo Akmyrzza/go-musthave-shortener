@@ -102,7 +102,7 @@ func (s *StoreDB) CreateShortURL(userID, originalURL, shortURL string) (string, 
 	return id, nil
 }
 
-func (s *StoreDB) GetOriginalURL(userID, shortURL string) (string, error) {
+func (s *StoreDB) GetOriginalURL(shortURL string) (string, error) {
 	var url string
 
 	query := `SELECT originalURL from urls WHERE shortURL = $1`

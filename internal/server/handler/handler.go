@@ -12,7 +12,7 @@ import (
 
 type ServiceURL interface {
 	CreateShortURL(userID, originalURL string) (string, bool, error)
-	GetOriginalURL(userID, shortURL string) (string, error)
+	GetOriginalURL(shortURL string) (string, error)
 	Ping() error
 	CreateShortURLs(userID string, urls []model.ReqURL) ([]model.ReqURL, error)
 	GetAllURLs(userID string) ([]model.ResURL, error)
@@ -70,13 +70,7 @@ func (h *Handler) GetOriginalURL(ctx *gin.Context) {
 		return
 	}
 
-	userID, err := ctx.Cookie("user_id")
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, nil)
-		return
-	}
-
-	originalURL, err := h.Service.GetOriginalURL(userID, id)
+	originalURL, err := h.Service.GetOriginalURL(id)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
