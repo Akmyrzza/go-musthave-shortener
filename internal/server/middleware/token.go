@@ -20,7 +20,7 @@ var Secret string = "mysecret"
 func TokenCookie() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
-		cookie, err := ctx.Cookie("user_id")
+		cookie, err := ctx.Cookie("uuid")
 		if err != nil {
 			newTokenCookie(ctx)
 			return
