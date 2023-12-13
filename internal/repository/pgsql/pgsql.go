@@ -64,7 +64,7 @@ func tableExist(db *sql.DB) error {
 func createTable(db *sql.DB, tableName string) error {
 	query := `CREATE TABLE ` + tableName + ` (
 				id SERIAL PRIMARY KEY,
-				userID VARCHAR(255) UNIQUE NOT NULL,
+				userID VARCHAR(255) NOT NULL,
 				originalURL VARCHAR(255) UNIQUE NOT NULL,
 				shortURL VARCHAR(255) UNIQUE NOT NULL
 				);`
