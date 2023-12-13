@@ -166,6 +166,13 @@ func (h *Handler) GetAllURLs(ctx *gin.Context) {
 		return
 	}
 
+	for i, v := range data {
+		data[i].ShortURL, err = url.JoinPath(h.BaseURL, v.ShortURL)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, nil)
+			return
+		}
+	}
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, data)
 }
