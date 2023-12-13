@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"net/http"
 	"time"
 )
 
@@ -44,5 +43,5 @@ func newTokenCookie(ctx *gin.Context) {
 
 	ctx.SetCookie("user_id", userID, 3600, "/", "localhost", false, true)
 	ctx.SetCookie("token", token, 3600, "/", "localhost", false, true)
-	ctx.AbortWithStatus(http.StatusUnauthorized)
+	//ctx.AbortWithStatus(http.StatusUnauthorized)
 }
