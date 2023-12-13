@@ -15,6 +15,7 @@ type ServiceURL interface {
 	GetOriginalURL(shortURL string) (string, error)
 	Ping() error
 	CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error)
+	GetAllURLs() ([]model.ResURL, error)
 }
 
 type Handler struct {
@@ -151,4 +152,20 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusCreated, tmpURLs)
+}
+
+func (h *Handler) GetAllURLs(ctx *gin.Context) {
+	data, err := h.Service.GetAllURLs()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, nil)
+		return
+	}
+
+	if len(data) == 0 {
+		ctx.JSON(http.StatusNoContent, nil)
+		return
+	}
+
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusOK, data)
 }

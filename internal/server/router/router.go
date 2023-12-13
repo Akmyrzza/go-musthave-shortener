@@ -10,6 +10,7 @@ import (
 func InitRouter(h *handler.Handler, l *zap.Logger) *gin.Engine {
 	router := gin.Default()
 
+	router.Use(middleware.TokenCookie(), gin.Recovery())
 	router.Use(middleware.LoggingRequest(l), gin.Recovery())
 	router.Use(middleware.CompressRequest(), gin.Recovery())
 
@@ -18,6 +19,7 @@ func InitRouter(h *handler.Handler, l *zap.Logger) *gin.Engine {
 	router.POST("/api/shorten", h.CreateIDJSON)
 	router.GET("/ping", h.Ping)
 	router.POST("/api/shorten/batch", h.CreateShortURLs)
+	router.GET("/api/user/urls", h.GetAllURLs)
 
 	return router
 }

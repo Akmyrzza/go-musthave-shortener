@@ -124,6 +124,20 @@ func (s *inMemory) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) 
 	return urls, nil
 }
 
+func (s *inMemory) GetAllURLs() ([]model.ResURL, error) {
+	var data []model.ResURL
+
+	for key, value := range s.dataURL {
+		var row model.ResURL
+
+		row.ShortURL = key
+		row.OriginalURL = value
+		data = append(data, row)
+	}
+
+	return data, nil
+}
+
 func (s *localRepository) CreateShortURL(originalURL, shortURL string) (string, error) {
 	id, err := s.inMemoryRepo.CreateShortURL(originalURL, shortURL)
 	if err != nil {
@@ -159,6 +173,11 @@ func (s *localRepository) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, 
 	}
 
 	return urls, nil
+}
+
+func (s *localRepository) GetAllURLs() ([]model.ResURL, error) {
+	data, err := s.inMemoryRepo.GetAllURLs()
+	return data, err
 }
 
 func saveInLocalDatabase(s *localRepository, originalURL, shortURL string) error {

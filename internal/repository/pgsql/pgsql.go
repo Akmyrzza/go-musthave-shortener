@@ -154,3 +154,27 @@ func (s *StoreDB) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
 
 	return urls, nil
 }
+
+func (s *StoreDB) GetAllURLs() ([]model.ResURL, error) {
+	var data []model.ResURL
+
+	query := `SELECT shorturl, originalurl FROM urls`
+
+	rows, err := s.DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("database query exec error: %w", err)
+	}
+
+	for rows.Next() {
+		var row model.ResURL
+
+		err := rows.Scan(&row.ShortURL, &row.OriginalURL)
+		if err != nil {
+			return nil, fmt.Errorf("rows scanning error: %w", err)
+		}
+
+		data = append(data, row)
+	}
+
+	return data, nil
+}

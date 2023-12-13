@@ -265,3 +265,35 @@
 [go.dev/errors](https://pkg.go.dev/errors) — документация пакета errors.
 
 [bitfieldconsulting | Error wrapping in Go](https://bitfieldconsulting.com/golang/wrapping-errors) — упаковка ошибок в Go.
+
+# Спринт 4
+
+## Пакеты hash, crypto. Безопасность информации
+
+### Хеширование и шифрование
+
+[go.dev/math/rand](https://pkg.go.dev/math/rand) — документация пакета math/rand.
+
+[go.dev/crypto/sha256](https://pkg.go.dev/crypto/sha256) — документация пакета crypto/sha256.
+
+[go.dev/crypto/md5](https://pkg.go.dev/crypto/md5) — документация пакета crypto/md5.
+
+[go.dev/crypto/cipher](https://pkg.go.dev/crypto/cipher) — документация пакета crypto/cipher.
+
+[Cryptanalytic Attacks on Pseudorandom Number Generators](https://www.schneier.com/wp-content/uploads/2017/10/paper-prngs.pdf) — научная статья о видах атак.
+
+[Educative | What is the AES algorithm?](https://www.educative.io/answers/what-is-the-aes-algorithm) — про алгоритм AES.
+
+[Practical Cryptography for Developers | Cipher Block Modes](https://cryptobook.nakov.com/symmetric-key-ciphers/cipher-block-modes) — про алгоритм GCM.
+
+[Practical Cryptography for Developers | HMAC and Key Derivation](https://cryptobook.nakov.com/mac-and-key-derivation/hmac-and-key-derivation) — про алгоритм HMAC.
+
+### Авторизация: JSON Web Token
+
+[go.dev/github.com/dgrijalva/jwt-go](https://pkg.go.dev/github.com/dgrijalva/jwt-go) — документация пакета jwt-go.
+
+[JSON Web Tokens](https://pkg.go.dev/github.com/dgrijalva/jwt-go#section-readme) — официальная страница JWT.
+
+[RSA](https://ru.wikipedia.org/wiki/RSA) — про алгоритм RSA.
+
+[ECDSA](https://ru.wikipedia.org/wiki/ECDSA) — про алгоритм ECDSA.

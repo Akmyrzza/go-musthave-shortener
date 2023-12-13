@@ -16,6 +16,7 @@ type Repository interface {
 	GetOriginalURL(originalURL string) (string, error)
 	PingStore() error
 	CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error)
+	GetAllURLs() ([]model.ResURL, error)
 }
 
 type ServiceURL struct {
@@ -67,6 +68,15 @@ func (s *ServiceURL) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error
 		return nil, err
 	}
 	return res, nil
+}
+
+func (s *ServiceURL) GetAllURLs() ([]model.ResURL, error) {
+	data, err := s.Repository.GetAllURLs()
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 func randString() string {
