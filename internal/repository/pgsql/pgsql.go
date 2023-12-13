@@ -64,6 +64,7 @@ func tableExist(db *sql.DB) error {
 func createTable(db *sql.DB, tableName string) error {
 	query := `CREATE TABLE ` + tableName + ` (
 				id SERIAL PRIMARY KEY,
+				userID VARCHAR(255) UNIQUE NOT NULL,
 				originalURL VARCHAR(255) UNIQUE NOT NULL,
 				shortURL VARCHAR(255) UNIQUE NOT NULL
 				);`
@@ -86,11 +87,11 @@ func (s *StoreDB) PingStore() error {
 	return nil
 }
 
-func (s *StoreDB) CreateShortURL(originalURL, shortURL string) (string, error) {
-	query := `INSERT INTO urls (originalURL, shortURL) VALUES ($1, $2) ON CONFLICT (originalURL) DO UPDATE SET originalURL=$1 RETURNING shortURL`
+func (s *StoreDB) CreateShortURL(userID, originalURL, shortURL string) (string, error) {
+	query := `INSERT INTO urls (userID, originalURL, shortURL) VALUES ($1, $2, $3) ON CONFLICT (originalURL) DO UPDATE SET originalURL=$2 RETURNING shortURL`
 
 	var id string
-	err := s.DB.QueryRow(query, originalURL, shortURL).Scan(&id)
+	err := s.DB.QueryRow(query, userID, originalURL, shortURL).Scan(&id)
 	if err != nil {
 		return "", fmt.Errorf("error: db query exec: %w", err)
 	}
@@ -101,7 +102,7 @@ func (s *StoreDB) CreateShortURL(originalURL, shortURL string) (string, error) {
 	return id, nil
 }
 
-func (s *StoreDB) GetOriginalURL(shortURL string) (string, error) {
+func (s *StoreDB) GetOriginalURL(userID, shortURL string) (string, error) {
 	var url string
 
 	query := `SELECT originalURL from urls WHERE shortURL = $1`
@@ -116,7 +117,7 @@ func (s *StoreDB) GetOriginalURL(shortURL string) (string, error) {
 	return url, nil
 }
 
-func (s *StoreDB) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
+func (s *StoreDB) CreateShortURLs(userID string, urls []model.ReqURL) ([]model.ReqURL, error) {
 	tx, err := s.DB.Begin()
 	if err != nil {
 		return nil, fmt.Errorf("transaction error: %w", err)
@@ -128,7 +129,7 @@ func (s *StoreDB) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
 		}
 	}()
 
-	stmt, err := tx.Prepare("INSERT INTO urls (originalURL, shortURL)" + "VALUES($1, $2)")
+	stmt, err := tx.Prepare("INSERT INTO urls (userID, originalURL, shortURL)" + "VALUES($1, $2, $3)")
 	if err != nil {
 		return nil, fmt.Errorf("tx query error: %w", err)
 	}
@@ -140,7 +141,7 @@ func (s *StoreDB) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
 	}()
 
 	for i, v := range urls {
-		_, err := stmt.Exec(v.OriginalURL, v.ShortURL)
+		_, err := stmt.Exec(userID, v.OriginalURL, v.ShortURL)
 		if err != nil {
 			return nil, fmt.Errorf("statement exec error: %w", err)
 		}
@@ -155,12 +156,12 @@ func (s *StoreDB) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
 	return urls, nil
 }
 
-func (s *StoreDB) GetAllURLs() ([]model.ResURL, error) {
+func (s *StoreDB) GetAllURLs(userID string) ([]model.ResURL, error) {
 	var data []model.ResURL
 
-	query := `SELECT shorturl, originalurl FROM urls`
+	query := `SELECT shorturl, originalurl FROM urls WHERE userID = $1`
 
-	rows, err := s.DB.Query(query)
+	rows, err := s.DB.Query(query, userID)
 	if err != nil {
 		return nil, fmt.Errorf("database query exec error: %w", err)
 	}

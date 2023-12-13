@@ -12,11 +12,11 @@ import (
 var RandLength = 16
 
 type Repository interface {
-	CreateShortURL(shortURL, originalURL string) (string, error)
-	GetOriginalURL(originalURL string) (string, error)
+	CreateShortURL(userID, shortURL, originalURL string) (string, error)
+	GetOriginalURL(userID, originalURL string) (string, error)
 	PingStore() error
-	CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error)
-	GetAllURLs() ([]model.ResURL, error)
+	CreateShortURLs(userID string, urls []model.ReqURL) ([]model.ReqURL, error)
+	GetAllURLs(userID string) ([]model.ResURL, error)
 }
 
 type ServiceURL struct {
@@ -29,10 +29,10 @@ func NewServiceURL(r Repository) *ServiceURL {
 	}
 }
 
-func (s *ServiceURL) CreateShortURL(originalURL string) (string, bool, error) {
+func (s *ServiceURL) CreateShortURL(userID, originalURL string) (string, bool, error) {
 	for {
 		shortURL := randString()
-		id, err := s.Repository.CreateShortURL(originalURL, shortURL)
+		id, err := s.Repository.CreateShortURL(userID, originalURL, shortURL)
 		if err != nil {
 			if errors.Is(err, cerror.ErrAlreadyExist) {
 				continue
@@ -48,8 +48,8 @@ func (s *ServiceURL) CreateShortURL(originalURL string) (string, bool, error) {
 	}
 }
 
-func (s *ServiceURL) GetOriginalURL(shortURL string) (string, error) {
-	originalURL, ok := s.Repository.GetOriginalURL(shortURL)
+func (s *ServiceURL) GetOriginalURL(userID, shortURL string) (string, error) {
+	originalURL, ok := s.Repository.GetOriginalURL(userID, shortURL)
 	return originalURL, ok
 }
 
@@ -57,21 +57,21 @@ func (s *ServiceURL) Ping() error {
 	return s.Repository.PingStore()
 }
 
-func (s *ServiceURL) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
+func (s *ServiceURL) CreateShortURLs(userID string, urls []model.ReqURL) ([]model.ReqURL, error) {
 	for i := range urls {
 		shortURL := randString()
 		urls[i].ShortURL = shortURL
 	}
 
-	res, err := s.Repository.CreateShortURLs(urls)
+	res, err := s.Repository.CreateShortURLs(userID, urls)
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-func (s *ServiceURL) GetAllURLs() ([]model.ResURL, error) {
-	data, err := s.Repository.GetAllURLs()
+func (s *ServiceURL) GetAllURLs(userID string) ([]model.ResURL, error) {
+	data, err := s.Repository.GetAllURLs(userID)
 	if err != nil {
 		return nil, err
 	}

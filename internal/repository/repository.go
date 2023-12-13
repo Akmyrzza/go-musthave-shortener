@@ -87,7 +87,7 @@ func initFileStore(m *inMemory, filePath string) (*localRepository, error) {
 	return ptrLocal, nil
 }
 
-func (s *inMemory) CreateShortURL(originalURL, shortURL string) (string, error) {
+func (s *inMemory) CreateShortURL(userID, originalURL, shortURL string) (string, error) {
 	_, found := s.dataURL[shortURL]
 	if found {
 		return "", cerror.ErrAlreadyExist
@@ -98,7 +98,7 @@ func (s *inMemory) CreateShortURL(originalURL, shortURL string) (string, error) 
 	return "", nil
 }
 
-func (s *inMemory) GetOriginalURL(id string) (string, error) {
+func (s *inMemory) GetOriginalURL(userID, id string) (string, error) {
 	originalURL, ok := s.dataURL[id]
 	if !ok {
 		return "", fmt.Errorf("not found in base")
@@ -111,7 +111,7 @@ func (s *inMemory) PingStore() error {
 	return errors.New("no ping")
 }
 
-func (s *inMemory) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
+func (s *inMemory) CreateShortURLs(userID string, urls []model.ReqURL) ([]model.ReqURL, error) {
 	for _, v := range urls {
 		_, found := s.dataURL[v.ShortURL]
 		if found {
@@ -124,7 +124,7 @@ func (s *inMemory) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) 
 	return urls, nil
 }
 
-func (s *inMemory) GetAllURLs() ([]model.ResURL, error) {
+func (s *inMemory) GetAllURLs(userID string) ([]model.ResURL, error) {
 	var data []model.ResURL
 
 	for key, value := range s.dataURL {
@@ -138,8 +138,8 @@ func (s *inMemory) GetAllURLs() ([]model.ResURL, error) {
 	return data, nil
 }
 
-func (s *localRepository) CreateShortURL(originalURL, shortURL string) (string, error) {
-	id, err := s.inMemoryRepo.CreateShortURL(originalURL, shortURL)
+func (s *localRepository) CreateShortURL(userID, originalURL, shortURL string) (string, error) {
+	id, err := s.inMemoryRepo.CreateShortURL(userID, originalURL, shortURL)
 	if err != nil {
 		return id, err
 	}
@@ -151,16 +151,16 @@ func (s *localRepository) CreateShortURL(originalURL, shortURL string) (string, 
 	return "", nil
 }
 
-func (s *localRepository) GetOriginalURL(originalURL string) (string, error) {
-	return s.inMemoryRepo.GetOriginalURL(originalURL)
+func (s *localRepository) GetOriginalURL(userID, originalURL string) (string, error) {
+	return s.inMemoryRepo.GetOriginalURL(userID, originalURL)
 }
 
 func (s *localRepository) PingStore() error {
 	return errors.New("no ping")
 }
 
-func (s *localRepository) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
-	urls, err := s.inMemoryRepo.CreateShortURLs(urls)
+func (s *localRepository) CreateShortURLs(userID string, urls []model.ReqURL) ([]model.ReqURL, error) {
+	urls, err := s.inMemoryRepo.CreateShortURLs(userID, urls)
 	if err != nil {
 		return nil, fmt.Errorf("saving in memory error: %w", err)
 	}
@@ -175,8 +175,8 @@ func (s *localRepository) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, 
 	return urls, nil
 }
 
-func (s *localRepository) GetAllURLs() ([]model.ResURL, error) {
-	data, err := s.inMemoryRepo.GetAllURLs()
+func (s *localRepository) GetAllURLs(userID string) ([]model.ResURL, error) {
+	data, err := s.inMemoryRepo.GetAllURLs(userID)
 	return data, err
 }
 

@@ -11,11 +11,11 @@ import (
 )
 
 type ServiceURL interface {
-	CreateShortURL(originalURL string) (string, bool, error)
-	GetOriginalURL(shortURL string) (string, error)
+	CreateShortURL(userID, originalURL string) (string, bool, error)
+	GetOriginalURL(userID, shortURL string) (string, error)
 	Ping() error
-	CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error)
-	GetAllURLs() ([]model.ResURL, error)
+	CreateShortURLs(userID string, urls []model.ReqURL) ([]model.ReqURL, error)
+	GetAllURLs(userID string) ([]model.ResURL, error)
 }
 
 type Handler struct {
@@ -37,7 +37,13 @@ func (h *Handler) CreateShortURL(ctx *gin.Context) {
 		return
 	}
 
-	id, exist, err := h.Service.CreateShortURL(string(reqBody))
+	userID, err := ctx.Cookie("user_id")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, nil)
+		return
+	}
+
+	id, exist, err := h.Service.CreateShortURL(userID, string(reqBody))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
 		return
@@ -64,7 +70,13 @@ func (h *Handler) GetOriginalURL(ctx *gin.Context) {
 		return
 	}
 
-	originalURL, err := h.Service.GetOriginalURL(id)
+	userID, err := ctx.Cookie("user_id")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, nil)
+		return
+	}
+
+	originalURL, err := h.Service.GetOriginalURL(userID, id)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
@@ -91,7 +103,13 @@ func (h *Handler) CreateIDJSON(ctx *gin.Context) {
 		return
 	}
 
-	id, exist, err := h.Service.CreateShortURL(stURL.URL)
+	userID, err := ctx.Cookie("user_id")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, nil)
+		return
+	}
+
+	id, exist, err := h.Service.CreateShortURL(userID, stURL.URL)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
 		return
@@ -135,7 +153,13 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 		return
 	}
 
-	tmpURLs, err = h.Service.CreateShortURLs(tmpURLs)
+	userID, err := ctx.Cookie("user_id")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, nil)
+		return
+	}
+
+	tmpURLs, err = h.Service.CreateShortURLs(userID, tmpURLs)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
 		return
@@ -155,7 +179,13 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 }
 
 func (h *Handler) GetAllURLs(ctx *gin.Context) {
-	data, err := h.Service.GetAllURLs()
+	userID, err := ctx.Cookie("user_id")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, nil)
+		return
+	}
+
+	data, err := h.Service.GetAllURLs(userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, nil)
 		return
