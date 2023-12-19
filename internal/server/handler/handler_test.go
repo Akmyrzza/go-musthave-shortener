@@ -20,7 +20,7 @@ import (
 )
 
 func TestHandler_CreateShortURL(t *testing.T) {
-	testRepository, err := repository.NewRepo("")
+	testRepository, err := repository.NewRepo("", "")
 	if err != nil {
 		log.Fatalf("error in repo: %d", err)
 	}
@@ -91,7 +91,7 @@ func TestHandler_GetOriginalURL(t *testing.T) {
 	}
 
 	if testRepository == nil {
-		testRepository, err = repository.NewRepo("")
+		testRepository, err = repository.NewRepo("", "")
 		log.Println(err)
 	}
 
@@ -168,7 +168,7 @@ func TestHandler_GetOriginalURL(t *testing.T) {
 }
 
 func TestHandler_CreateIDJSON(t *testing.T) {
-	testRepository, err := repository.NewRepo("")
+	testRepository, err := repository.NewRepo("", "")
 	if err != nil {
 		log.Fatalf("error in repo: %d", err)
 	}
@@ -248,7 +248,7 @@ func TestHandler_CreateShortURLs(t *testing.T) {
 	}
 
 	if testRepository == nil {
-		testRepository, err = repository.NewRepo("")
+		testRepository, err = repository.NewRepo("", "")
 		if err != nil {
 			log.Fatalf("error in repo: %d", err)
 		}
