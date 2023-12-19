@@ -1,7 +1,6 @@
 package app
 
 import (
-	"github.com/akmyrzza/go-musthave-shortener/internal/repository/pgsql"
 	"log"
 	"net/http"
 
@@ -22,16 +21,9 @@ func Run(cfg *config.Config) error {
 		}
 	}()
 
-	repo, err := pgsql.InitDatabase(cfg.DatabasePath)
+	repo, err := repository.NewRepo(cfg.DatabasePath, cfg.FilePath)
 	if err != nil {
 		log.Println(err)
-	}
-
-	if repo == nil {
-		repo, err = repository.NewRepo(cfg.FilePath)
-		if err != nil {
-			return cerror.ErrInMemoryRepo
-		}
 	}
 
 	srv := service.NewServiceURL(repo)

@@ -1,11 +1,13 @@
 package repository
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 	"github.com/akmyrzza/go-musthave-shortener/internal/model"
+	"github.com/akmyrzza/go-musthave-shortener/internal/repository/pgsql"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"io"
 	"log"
@@ -31,7 +33,16 @@ type tmpStorage struct {
 
 var Permission = 0600
 
-func NewRepo(filePath string) (service.Repository, error) {
+func NewRepo(databasePath, filePath string) (service.Repository, error) {
+	database, err := pgsql.InitDatabase(databasePath)
+	if err != nil {
+		log.Println(err)
+	}
+
+	if database != nil {
+		return database, nil
+	}
+
 	inMemoryStore := initInMemoryStore()
 
 	if filePath == "" {
@@ -101,13 +112,13 @@ func (s *inMemory) CreateShortURL(originalURL, shortURL string) (string, error) 
 func (s *inMemory) GetOriginalURL(id string) (string, error) {
 	originalURL, ok := s.dataURL[id]
 	if !ok {
-		return "", fmt.Errorf("not found in base")
+		return "", fmt.Errorf("not found in base: %s", id)
 	}
 
 	return originalURL, nil
 }
 
-func (s *inMemory) PingStore() error {
+func (s *inMemory) Ping(ctx context.Context) error {
 	return errors.New("no ping")
 }
 
@@ -115,7 +126,7 @@ func (s *inMemory) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) 
 	for _, v := range urls {
 		_, found := s.dataURL[v.ShortURL]
 		if found {
-			return nil, cerror.ErrAlreadyExist
+			return nil, fmt.Errorf("already exist in base: %s", v.ShortURL)
 		}
 
 		s.dataURL[v.ShortURL] = v.OriginalURL
@@ -141,7 +152,7 @@ func (s *localRepository) GetOriginalURL(originalURL string) (string, error) {
 	return s.inMemoryRepo.GetOriginalURL(originalURL)
 }
 
-func (s *localRepository) PingStore() error {
+func (s *localRepository) Ping(ctx context.Context) error {
 	return errors.New("no ping")
 }
 

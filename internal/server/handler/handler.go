@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/akmyrzza/go-musthave-shortener/internal/model"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 
@@ -13,7 +15,7 @@ import (
 type ServiceURL interface {
 	CreateShortURL(originalURL string) (string, bool, error)
 	GetOriginalURL(shortURL string) (string, error)
-	Ping() error
+	Ping(ctx context.Context) error
 	CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error)
 }
 
@@ -111,8 +113,9 @@ func (h *Handler) CreateIDJSON(ctx *gin.Context) {
 }
 
 func (h *Handler) Ping(ctx *gin.Context) {
-	err := h.Service.Ping()
+	err := h.Service.Ping(context.Background())
 	if err != nil {
+		log.Println(err)
 		ctx.JSON(http.StatusInternalServerError, "")
 		return
 	}
@@ -136,6 +139,7 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 
 	tmpURLs, err = h.Service.CreateShortURLs(tmpURLs)
 	if err != nil {
+		log.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
 		return
 	}
@@ -143,6 +147,7 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 	for i, v := range tmpURLs {
 		resultString, err := url.JoinPath(h.BaseURL, v.ShortURL)
 		if err != nil {
+			log.Println(err)
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
 			return
 		}

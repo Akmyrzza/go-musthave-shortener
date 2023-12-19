@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/akmyrzza/go-musthave-shortener/internal/model"
@@ -14,7 +15,7 @@ var RandLength = 16
 type Repository interface {
 	CreateShortURL(shortURL, originalURL string) (string, error)
 	GetOriginalURL(originalURL string) (string, error)
-	PingStore() error
+	Ping(ctx context.Context) error
 	CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error)
 }
 
@@ -52,8 +53,8 @@ func (s *ServiceURL) GetOriginalURL(shortURL string) (string, error) {
 	return originalURL, ok
 }
 
-func (s *ServiceURL) Ping() error {
-	return s.Repository.PingStore()
+func (s *ServiceURL) Ping(ctx context.Context) error {
+	return s.Repository.Ping(ctx)
 }
 
 func (s *ServiceURL) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {

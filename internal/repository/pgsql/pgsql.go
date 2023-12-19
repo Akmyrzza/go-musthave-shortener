@@ -76,8 +76,8 @@ func createTable(db *sql.DB, tableName string) error {
 	return nil
 }
 
-func (s *StoreDB) PingStore() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+func (s *StoreDB) Ping(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
 	if err := s.DB.PingContext(ctx); err != nil {
