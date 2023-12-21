@@ -23,7 +23,7 @@ func Run(cfg *config.Config) error {
 
 	repo, err := repository.NewRepo(cfg.DatabasePath, cfg.FilePath)
 	if err != nil {
-		log.Println(err)
+		return cerror.ErrInMemoryRepo
 	}
 
 	srv := service.NewServiceURL(repo)
