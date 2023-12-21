@@ -3,10 +3,15 @@ package pgsql
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"errors"
 	"fmt"
+	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 	"github.com/akmyrzza/go-musthave-shortener/internal/model"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"log"
 	"time"
@@ -15,6 +20,9 @@ import (
 type StoreDB struct {
 	DB *sql.DB
 }
+
+//go:embed migrations/*.sql
+var migrationsDir embed.FS
 
 func InitDatabase(DatabasePath string) (service.Repository, error) {
 	if DatabasePath == "" {
@@ -26,9 +34,25 @@ func InitDatabase(DatabasePath string) (service.Repository, error) {
 		return nil, fmt.Errorf("error opening db: %w", err)
 	}
 
-	if err := initTables(db, "urls"); err != nil {
-		return nil, err
+	d, err := iofs.New(migrationsDir, "migrations")
+	if err != nil {
+		return nil, fmt.Errorf("failed to return an iofs driver: %w", err)
 	}
+
+	m, err := migrate.NewWithSourceInstance("iofs", d, DatabasePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get a new migrate instance: %w", err)
+	}
+
+	if err := m.Up(); err != nil {
+		if !errors.Is(err, migrate.ErrNoChange) {
+			return nil, fmt.Errorf("failed to apply migrations to the DB: %w", err)
+		}
+	}
+
+	//if err := initTables(db, "urls"); err != nil {
+	//	return nil, err
+	//}
 
 	storeDB := new(StoreDB)
 	storeDB.DB = db
@@ -96,7 +120,7 @@ func (s *StoreDB) CreateShortURL(originalURL, shortURL string) (string, error) {
 	}
 
 	if id == shortURL {
-		return "", nil
+		return "", cerror.ErrAlreadyExist
 	}
 	return id, nil
 }
