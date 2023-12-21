@@ -119,7 +119,7 @@ func (s *inMemory) GetOriginalURL(id string) (string, error) {
 }
 
 func (s *inMemory) Ping(ctx context.Context) error {
-	return errors.New("no ping")
+	return nil
 }
 
 func (s *inMemory) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
@@ -153,7 +153,7 @@ func (s *localRepository) GetOriginalURL(originalURL string) (string, error) {
 }
 
 func (s *localRepository) Ping(ctx context.Context) error {
-	return errors.New("no ping")
+	return nil
 }
 
 func (s *localRepository) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
