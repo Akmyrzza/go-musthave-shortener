@@ -10,8 +10,7 @@ import (
 func InitRouter(h *handler.Handler, l *zap.Logger) *gin.Engine {
 	router := gin.Default()
 
-	router.Use(middleware.LoggingRequest(l), gin.Recovery())
-	router.Use(middleware.CompressRequest(), gin.Recovery())
+	router.Use(gin.Recovery(), middleware.LoggingRequest(l), middleware.CompressRequest())
 
 	router.POST("/", h.CreateShortURL)
 	router.GET("/:id", h.GetOriginalURL)

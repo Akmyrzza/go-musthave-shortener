@@ -13,7 +13,6 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"log"
-	"net/url"
 	"strings"
 	"time"
 )
@@ -29,9 +28,6 @@ func InitDatabase(DatabasePath string) (service.Repository, error) {
 	if DatabasePath == "" {
 		return nil, errors.New("error database path empty")
 	}
-
-	p, _ := url.Parse(DatabasePath)
-	fmt.Println(p)
 
 	db, err := sql.Open("pgx", DatabasePath)
 	if err != nil {
