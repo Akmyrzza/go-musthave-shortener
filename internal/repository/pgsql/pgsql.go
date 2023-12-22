@@ -6,7 +6,6 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 	"github.com/akmyrzza/go-musthave-shortener/internal/model"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"github.com/golang-migrate/migrate/v4"
@@ -14,6 +13,8 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"log"
+	"net/url"
+	"strings"
 	"time"
 )
 
@@ -29,6 +30,9 @@ func InitDatabase(DatabasePath string) (service.Repository, error) {
 		return nil, errors.New("error database path empty")
 	}
 
+	p, _ := url.Parse(DatabasePath)
+	fmt.Println(p)
+
 	db, err := sql.Open("pgx", DatabasePath)
 	if err != nil {
 		return nil, fmt.Errorf("error opening db: %w", err)
@@ -39,7 +43,8 @@ func InitDatabase(DatabasePath string) (service.Repository, error) {
 		return nil, fmt.Errorf("failed to return an iofs driver: %w", err)
 	}
 
-	m, err := migrate.NewWithSourceInstance("iofs", d, DatabasePath)
+	databaseURL := parseDatabasePath(DatabasePath)
+	m, err := migrate.NewWithSourceInstance("iofs", d, databaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get a new migrate instance: %w", err)
 	}
@@ -50,54 +55,23 @@ func InitDatabase(DatabasePath string) (service.Repository, error) {
 		}
 	}
 
-	//if err := initTables(db, "urls"); err != nil {
-	//	return nil, err
-	//}
-
 	storeDB := new(StoreDB)
 	storeDB.DB = db
 
 	return storeDB, nil
 }
 
-func initTables(db *sql.DB, tableName string) error {
-	err := tableExist(db)
-	if err != nil {
-		errCreating := createTable(db, tableName)
-		if errCreating != nil {
-			return errCreating
-		}
+func parseDatabasePath(databasePath string) string {
+	parts := strings.Split(databasePath, " ")
+	params := make(map[string]string)
 
-		return nil
+	for _, part := range parts {
+		p := strings.SplitN(part, "=", 2)
+		params[p[0]] = p[1]
 	}
 
-	return nil
-}
-
-func tableExist(db *sql.DB) error {
-	var count int
-	query := `SELECT COUNT(*) from urls`
-	err := db.QueryRow(query).Scan(&count)
-	if err != nil {
-		return fmt.Errorf("table does not exist: %w", err)
-	}
-
-	return nil
-}
-
-func createTable(db *sql.DB, tableName string) error {
-	query := `CREATE TABLE ` + tableName + ` (
-				id SERIAL PRIMARY KEY,
-				originalURL VARCHAR(255) UNIQUE NOT NULL,
-				shortURL VARCHAR(255) UNIQUE NOT NULL
-				);`
-
-	_, err := db.Exec(query)
-	if err != nil {
-		return fmt.Errorf("table creating error: %w", err)
-	}
-
-	return nil
+	databaseURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", params["user"], params["password"], params["host"], params["port"], params["dbname"], params["sslmode"])
+	return databaseURL
 }
 
 func (s *StoreDB) Ping(ctx context.Context) error {
@@ -120,7 +94,7 @@ func (s *StoreDB) CreateShortURL(originalURL, shortURL string) (string, error) {
 	}
 
 	if id == shortURL {
-		return "", cerror.ErrAlreadyExist
+		return "", nil
 	}
 	return id, nil
 }

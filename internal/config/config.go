@@ -20,7 +20,7 @@ func InitConfig() (*Config, error) {
 	flag.StringVar(&cfg.ServerAddr, "a", "localhost:8080", "address and port to run server")
 	flag.StringVar(&cfg.BaseURL, "b", "http://localhost:8080", "base address of the resulting shortened URL")
 	flag.StringVar(&cfg.FilePath, "f", "localDB.json", "dir of the storage")
-	flag.StringVar(&cfg.DatabasePath, "d", "host=localhost port=5432 user=postgres password=mysecret dbname=postgresdb sslmode=disable", "path of database")
+	flag.StringVar(&cfg.DatabasePath, "d", "", "path of database")
 
 	flag.Parse()
 
