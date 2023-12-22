@@ -13,7 +13,6 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"log"
-	"strings"
 	"time"
 )
 
@@ -39,7 +38,6 @@ func InitDatabase(DatabasePath string) (service.Repository, error) {
 		return nil, fmt.Errorf("failed to return an iofs driver: %w", err)
 	}
 
-	//databaseURL := parseDatabasePath(DatabasePath)
 	m, err := migrate.NewWithSourceInstance("iofs", d, DatabasePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get a new migrate instance: %w", err)
@@ -55,19 +53,6 @@ func InitDatabase(DatabasePath string) (service.Repository, error) {
 	storeDB.DB = db
 
 	return storeDB, nil
-}
-
-func parseDatabasePath(databasePath string) string {
-	parts := strings.Split(databasePath, " ")
-	params := make(map[string]string)
-
-	for _, part := range parts {
-		p := strings.SplitN(part, "=", 2)
-		params[p[0]] = p[1]
-	}
-
-	databaseURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", params["user"], params["password"], params["host"], params["port"], params["dbname"], params["sslmode"])
-	return databaseURL
 }
 
 func (s *StoreDB) Ping(ctx context.Context) error {
