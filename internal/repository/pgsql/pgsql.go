@@ -39,8 +39,8 @@ func InitDatabase(DatabasePath string) (service.Repository, error) {
 		return nil, fmt.Errorf("failed to return an iofs driver: %w", err)
 	}
 
-	databaseURL := parseDatabasePath(DatabasePath)
-	m, err := migrate.NewWithSourceInstance("iofs", d, databaseURL)
+	//databaseURL := parseDatabasePath(DatabasePath)
+	m, err := migrate.NewWithSourceInstance("iofs", d, DatabasePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get a new migrate instance: %w", err)
 	}
