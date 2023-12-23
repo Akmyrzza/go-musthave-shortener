@@ -17,7 +17,7 @@ type Config struct {
 func InitConfig() (*Config, error) {
 	cfg := new(Config)
 
-	pgxSource := "postgresql://postgres:mysecret@localhost:5432/postgresdb?sslmode=disable"
+	pgxSource := "" //"postgresql://postgres:mysecret@localhost:5432/postgresdb?sslmode=disable"
 	flag.StringVar(&cfg.ServerAddr, "a", "localhost:8080", "address and port to run server")
 	flag.StringVar(&cfg.BaseURL, "b", "http://localhost:8080", "base address of the resulting shortened URL")
 	flag.StringVar(&cfg.FilePath, "f", "localDB.json", "dir of the storage")
