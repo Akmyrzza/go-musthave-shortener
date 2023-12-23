@@ -106,7 +106,7 @@ func (s *inMemory) CreateShortURL(originalURL, shortURL string) (string, error) 
 
 	s.dataURL[shortURL] = originalURL
 
-	return "", nil
+	return shortURL, nil
 }
 
 func (s *inMemory) GetOriginalURL(id string) (string, error) {
@@ -138,14 +138,14 @@ func (s *inMemory) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) 
 func (s *localRepository) CreateShortURL(originalURL, shortURL string) (string, error) {
 	id, err := s.inMemoryRepo.CreateShortURL(originalURL, shortURL)
 	if err != nil {
-		return id, err
+		return "", err
 	}
 
 	if err := saveInLocalDatabase(s, originalURL, shortURL); err != nil {
 		return "", err
 	}
 
-	return "", nil
+	return id, nil
 }
 
 func (s *localRepository) GetOriginalURL(originalURL string) (string, error) {
