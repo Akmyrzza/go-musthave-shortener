@@ -12,6 +12,7 @@ func InitRouter(h *handler.Handler, l *zap.Logger) *gin.Engine {
 
 	router.Use(gin.Recovery(), middleware.LoggingRequest(l), middleware.CompressRequest())
 
+	//func(ctx *gin.Context) { h.CreateShortURL(ctx) })
 	router.POST("/", h.CreateShortURL)
 	router.GET("/:id", h.GetOriginalURL)
 	router.POST("/api/shorten", h.CreateIDJSON)
