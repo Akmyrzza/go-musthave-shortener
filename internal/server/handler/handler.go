@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 	"github.com/akmyrzza/go-musthave-shortener/internal/model"
 	"io"
 	"log"
@@ -13,7 +14,7 @@ import (
 )
 
 type ServiceURL interface {
-	CreateShortURL(originalURL string) (string, bool, error)
+	CreateShortURL(originalURL string) (string, error)
 	GetOriginalURL(shortURL string) (string, error)
 	Ping(ctx context.Context) error
 	CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error)
@@ -38,10 +39,12 @@ func (h *Handler) CreateShortURL(ctx *gin.Context) {
 		return
 	}
 
-	id, exist, err := h.Service.CreateShortURL(string(reqBody))
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
-		return
+	id, cerr := h.Service.CreateShortURL(string(reqBody))
+	if cerr != nil {
+		if cerr != cerror.ErrAlreadyExist {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
+			return
+		}
 	}
 
 	resultString, err := url.JoinPath(h.BaseURL, id)
@@ -51,7 +54,7 @@ func (h *Handler) CreateShortURL(ctx *gin.Context) {
 	}
 
 	ctx.Header("Content-Type", "text/plain")
-	if exist {
+	if cerr != nil {
 		ctx.String(http.StatusConflict, resultString)
 		return
 	}
@@ -92,10 +95,12 @@ func (h *Handler) CreateIDJSON(ctx *gin.Context) {
 		return
 	}
 
-	id, exist, err := h.Service.CreateShortURL(stURL.URL)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
-		return
+	id, cerr := h.Service.CreateShortURL(stURL.URL)
+	if cerr != nil {
+		if cerr != cerror.ErrAlreadyExist {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
+			return
+		}
 	}
 
 	resultString, err := url.JoinPath(h.BaseURL, id)
@@ -105,7 +110,7 @@ func (h *Handler) CreateIDJSON(ctx *gin.Context) {
 	}
 
 	ctx.Header("Content-Type", "application/json")
-	if exist {
+	if cerr != nil {
 		ctx.JSON(http.StatusConflict, gin.H{"result": resultString})
 		return
 	}

@@ -29,22 +29,18 @@ func NewServiceURL(r Repository) *ServiceURL {
 	}
 }
 
-func (s *ServiceURL) CreateShortURL(originalURL string) (string, bool, error) {
+func (s *ServiceURL) CreateShortURL(originalURL string) (string, error) {
 	for {
 		shortURL := randString()
 		id, err := s.Repository.CreateShortURL(originalURL, shortURL)
 		if err != nil {
 			if errors.Is(err, cerror.ErrAlreadyExist) {
-				continue
+				return id, cerror.ErrAlreadyExist
 			}
-			return "", false, fmt.Errorf("creating id error: %w", err)
+			return "", fmt.Errorf("creating id error: %w", err)
 		}
 
-		if id == "" {
-			return shortURL, false, nil
-		}
-
-		return id, true, nil
+		return id, nil
 	}
 }
 

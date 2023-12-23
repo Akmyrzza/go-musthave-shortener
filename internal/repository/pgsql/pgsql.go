@@ -5,13 +5,13 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 	"github.com/akmyrzza/go-musthave-shortener/internal/model"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jackc/pgx/v4"
-	_ "github.com/jackc/pgx/v4"
 	"log"
 	"time"
 )
@@ -67,18 +67,22 @@ func (s *StoreDB) Ping(ctx context.Context) error {
 }
 
 func (s *StoreDB) CreateShortURL(originalURL, shortURL string) (string, error) {
-	query := `INSERT INTO urls (originalURL, shortURL) VALUES ($1, $2) ON CONFLICT (originalURL) DO UPDATE SET originalURL=$1 RETURNING shortURL`
-
 	var id string
-	err := s.DB.QueryRow(context.Background(), query, originalURL, shortURL).Scan(&id)
-	if err != nil {
-		return "", fmt.Errorf("error: db query exec: %w", err)
-	}
 
-	if id == shortURL {
-		return "", nil
+	queryGet := `SELECT shortURL FROM urls WHERE originalURL = $1`
+	result := s.DB.QueryRow(context.Background(), queryGet, originalURL)
+	if err := result.Scan(&id); err != nil {
+		if err == pgx.ErrNoRows {
+			query := `INSERT INTO urls (originalURL, shortURL) VALUES ($1, $2)`
+			_, err := s.DB.Exec(context.Background(), query, originalURL, shortURL)
+			if err != nil {
+				return "", fmt.Errorf("error: db query exec: %w", err)
+			}
+			return shortURL, nil
+		}
+		return "", fmt.Errorf("db query error: %w", err)
 	}
-	return id, nil
+	return id, cerror.ErrAlreadyExist
 }
 
 func (s *StoreDB) GetOriginalURL(shortURL string) (string, error) {
