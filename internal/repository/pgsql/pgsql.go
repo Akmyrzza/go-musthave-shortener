@@ -106,28 +106,35 @@ func (s *StoreDB) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
 		return nil, fmt.Errorf("transaction error: %w", err)
 	}
 	defer func() {
-		if err := tx.Rollback(context.Background()); err != nil {
-			log.Printf("error rollback: %d", err)
+		if err != nil {
+			if rbErr := tx.Rollback(context.Background()); rbErr != nil {
+				log.Printf("error rollback: %v", rbErr)
+			}
+		} else {
+			if cmErr := tx.Commit(context.Background()); cmErr != nil {
+				log.Printf("error commit: %v", cmErr)
+			}
 		}
+
 	}()
 
-	batch := pgx.Batch{}
+	batch := &pgx.Batch{}
 
 	for i, v := range urls {
 		batch.Queue("INSERT INTO urls (originalURL, shortURL)"+"VALUES($1, $2)", v.OriginalURL, v.ShortURL)
 		urls[i].OriginalURL = ""
 	}
 
-	br := tx.SendBatch(context.Background(), &batch)
+	br := tx.SendBatch(context.Background(), batch)
 	defer func() {
 		if err := br.Close(); err != nil {
 			log.Printf("error batch close: %d", err)
 		}
 	}()
 
-	err = tx.Commit(context.Background())
+	_, err = br.Exec()
 	if err != nil {
-		return nil, fmt.Errorf("commit error: %w", err)
+		return nil, fmt.Errorf("batch execution error: %w", err)
 	}
 
 	return urls, nil
