@@ -11,13 +11,14 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"time"
 )
 
 type StoreDB struct {
-	DB *pgx.Conn
+	DB *pgxpool.Pool
 }
 
 //go:embed migrations/*.sql
@@ -29,7 +30,7 @@ func InitDatabase(DatabasePath string) (service.Repository, error) {
 	}
 
 	//db, err := sql.Open("pgx", DatabasePath)
-	db, err := pgx.Connect(context.Background(), DatabasePath)
+	db, err := pgxpool.New(context.Background(), DatabasePath)
 	if err != nil {
 		return nil, fmt.Errorf("error opening db: %w", err)
 	}
@@ -66,15 +67,32 @@ func (s *StoreDB) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (s *StoreDB) CreateShortURL(originalURL, shortURL string) (string, error) {
+func (s *StoreDB) CreateShortURL(ctx context.Context, originalURL, shortURL string) (string, error) {
 	var id string
 
+	tx, err := s.DB.Begin(ctx)
+	if err != nil {
+		return "", fmt.Errorf("transaction error: %w", err)
+	}
+	defer func() {
+		if err != nil {
+			if rbErr := tx.Rollback(ctx); rbErr != nil {
+				log.Printf("error rollback: %v", rbErr)
+			}
+		} else {
+			if cmErr := tx.Commit(ctx); cmErr != nil {
+				log.Printf("error commit: %v", cmErr)
+			}
+		}
+
+	}()
+
 	queryGet := `SELECT shortURL FROM urls WHERE originalURL = $1`
-	result := s.DB.QueryRow(context.Background(), queryGet, originalURL)
+	result := tx.QueryRow(ctx, queryGet, originalURL)
 	if err := result.Scan(&id); err != nil {
 		if err == pgx.ErrNoRows {
 			query := `INSERT INTO urls (originalURL, shortURL) VALUES ($1, $2)`
-			_, err := s.DB.Exec(context.Background(), query, originalURL, shortURL)
+			_, err := tx.Exec(ctx, query, originalURL, shortURL)
 			if err != nil {
 				return "", fmt.Errorf("error: db query exec: %w", err)
 			}
@@ -85,12 +103,12 @@ func (s *StoreDB) CreateShortURL(originalURL, shortURL string) (string, error) {
 	return id, cerror.ErrAlreadyExist
 }
 
-func (s *StoreDB) GetOriginalURL(shortURL string) (string, error) {
+func (s *StoreDB) GetOriginalURL(ctx context.Context, shortURL string) (string, error) {
 	var url string
 
 	query := `SELECT originalURL from urls WHERE shortURL = $1`
 
-	row := s.DB.QueryRow(context.Background(), query, shortURL)
+	row := s.DB.QueryRow(ctx, query, shortURL)
 
 	err := row.Scan(&url)
 	if err != nil {
@@ -100,18 +118,18 @@ func (s *StoreDB) GetOriginalURL(shortURL string) (string, error) {
 	return url, nil
 }
 
-func (s *StoreDB) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
-	tx, err := s.DB.Begin(context.Background())
+func (s *StoreDB) CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error) {
+	tx, err := s.DB.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("transaction error: %w", err)
 	}
 	defer func() {
 		if err != nil {
-			if rbErr := tx.Rollback(context.Background()); rbErr != nil {
+			if rbErr := tx.Rollback(ctx); rbErr != nil {
 				log.Printf("error rollback: %v", rbErr)
 			}
 		} else {
-			if cmErr := tx.Commit(context.Background()); cmErr != nil {
+			if cmErr := tx.Commit(ctx); cmErr != nil {
 				log.Printf("error commit: %v", cmErr)
 			}
 		}
@@ -121,11 +139,11 @@ func (s *StoreDB) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
 	batch := &pgx.Batch{}
 
 	for i, v := range urls {
-		batch.Queue("INSERT INTO urls (originalURL, shortURL)"+"VALUES($1, $2)", v.OriginalURL, v.ShortURL)
+		batch.Queue("INSERT INTO urls (originalURL, shortURL) VALUES($1, $2)", v.OriginalURL, v.ShortURL)
 		urls[i].OriginalURL = ""
 	}
 
-	br := tx.SendBatch(context.Background(), batch)
+	br := tx.SendBatch(ctx, batch)
 	defer func() {
 		if err := br.Close(); err != nil {
 			log.Printf("error batch close: %d", err)
@@ -138,30 +156,4 @@ func (s *StoreDB) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
 	}
 
 	return urls, nil
-
-	//stmt, err := tx.Prepare("INSERT INTO urls (originalURL, shortURL)" + "VALUES($1, $2)")
-	//if err != nil {
-	//	return nil, fmt.Errorf("tx query error: %w", err)
-	//}
-	//
-	//defer func() {
-	//	if err := stmt.Close(); err != nil {
-	//		log.Printf("error statement: %d", err)
-	//	}
-	//}()
-	//
-	//for i, v := range urls {
-	//	_, err := stmt.Exec(v.OriginalURL, v.ShortURL)
-	//	if err != nil {
-	//		return nil, fmt.Errorf("statement exec error: %w", err)
-	//	}
-	//	urls[i].OriginalURL = ""
-	//}
-	//
-	//err = tx.Commit()
-	//if err != nil {
-	//	return nil, fmt.Errorf("commit error: %w", err)
-	//}
-	//
-	//return urls, nil
 }

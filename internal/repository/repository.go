@@ -98,7 +98,7 @@ func initFileStore(m *inMemory, filePath string) (*localRepository, error) {
 	return ptrLocal, nil
 }
 
-func (s *inMemory) CreateShortURL(originalURL, shortURL string) (string, error) {
+func (s *inMemory) CreateShortURL(_ context.Context, originalURL, shortURL string) (string, error) {
 	_, found := s.dataURL[shortURL]
 	if found {
 		return "", cerror.ErrAlreadyExist
@@ -109,7 +109,7 @@ func (s *inMemory) CreateShortURL(originalURL, shortURL string) (string, error) 
 	return shortURL, nil
 }
 
-func (s *inMemory) GetOriginalURL(id string) (string, error) {
+func (s *inMemory) GetOriginalURL(_ context.Context, id string) (string, error) {
 	originalURL, ok := s.dataURL[id]
 	if !ok {
 		return "", fmt.Errorf("not found in base: %s", id)
@@ -118,11 +118,11 @@ func (s *inMemory) GetOriginalURL(id string) (string, error) {
 	return originalURL, nil
 }
 
-func (s *inMemory) Ping(ctx context.Context) error {
+func (s *inMemory) Ping(_ context.Context) error {
 	return nil
 }
 
-func (s *inMemory) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
+func (s *inMemory) CreateShortURLs(_ context.Context, urls []model.ReqURL) ([]model.ReqURL, error) {
 	for _, v := range urls {
 		_, found := s.dataURL[v.ShortURL]
 		if found {
@@ -135,8 +135,8 @@ func (s *inMemory) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) 
 	return urls, nil
 }
 
-func (s *localRepository) CreateShortURL(originalURL, shortURL string) (string, error) {
-	id, err := s.inMemoryRepo.CreateShortURL(originalURL, shortURL)
+func (s *localRepository) CreateShortURL(ctx context.Context, originalURL, shortURL string) (string, error) {
+	id, err := s.inMemoryRepo.CreateShortURL(ctx, originalURL, shortURL)
 	if err != nil {
 		return "", err
 	}
@@ -148,16 +148,16 @@ func (s *localRepository) CreateShortURL(originalURL, shortURL string) (string, 
 	return id, nil
 }
 
-func (s *localRepository) GetOriginalURL(originalURL string) (string, error) {
-	return s.inMemoryRepo.GetOriginalURL(originalURL)
+func (s *localRepository) GetOriginalURL(ctx context.Context, originalURL string) (string, error) {
+	return s.inMemoryRepo.GetOriginalURL(ctx, originalURL)
 }
 
-func (s *localRepository) Ping(ctx context.Context) error {
+func (s *localRepository) Ping(_ context.Context) error {
 	return nil
 }
 
-func (s *localRepository) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
-	urls, err := s.inMemoryRepo.CreateShortURLs(urls)
+func (s *localRepository) CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error) {
+	urls, err := s.inMemoryRepo.CreateShortURLs(ctx, urls)
 	if err != nil {
 		return nil, fmt.Errorf("saving in memory error: %w", err)
 	}

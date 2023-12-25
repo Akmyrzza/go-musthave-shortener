@@ -14,10 +14,10 @@ import (
 )
 
 type ServiceURL interface {
-	CreateShortURL(originalURL string) (string, error)
-	GetOriginalURL(shortURL string) (string, error)
+	CreateShortURL(ctx context.Context, originalURL string) (string, error)
+	GetOriginalURL(ctx context.Context, shortURL string) (string, error)
 	Ping(ctx context.Context) error
-	CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error)
+	CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error)
 }
 
 type Handler struct {
@@ -39,7 +39,7 @@ func (h *Handler) CreateShortURL(ctx *gin.Context) {
 		return
 	}
 
-	id, cerr := h.Service.CreateShortURL(string(reqBody))
+	id, cerr := h.Service.CreateShortURL(ctx.Request.Context(), string(reqBody))
 	if cerr != nil {
 		if cerr != cerror.ErrAlreadyExist {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
@@ -68,7 +68,7 @@ func (h *Handler) GetOriginalURL(ctx *gin.Context) {
 		return
 	}
 
-	originalURL, err := h.Service.GetOriginalURL(id)
+	originalURL, err := h.Service.GetOriginalURL(ctx.Request.Context(), id)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
@@ -95,7 +95,7 @@ func (h *Handler) CreateIDJSON(ctx *gin.Context) {
 		return
 	}
 
-	id, cerr := h.Service.CreateShortURL(stURL.URL)
+	id, cerr := h.Service.CreateShortURL(ctx.Request.Context(), stURL.URL)
 	if cerr != nil {
 		if cerr != cerror.ErrAlreadyExist {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
@@ -118,7 +118,7 @@ func (h *Handler) CreateIDJSON(ctx *gin.Context) {
 }
 
 func (h *Handler) Ping(ctx *gin.Context) {
-	err := h.Service.Ping(context.Background())
+	err := h.Service.Ping(ctx.Request.Context())
 	if err != nil {
 		log.Println(err)
 		ctx.JSON(http.StatusInternalServerError, "")
@@ -142,7 +142,7 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 		return
 	}
 
-	tmpURLs, err = h.Service.CreateShortURLs(tmpURLs)
+	tmpURLs, err = h.Service.CreateShortURLs(ctx.Request.Context(), tmpURLs)
 	if err != nil {
 		log.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})

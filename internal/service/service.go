@@ -13,10 +13,10 @@ import (
 var RandLength = 16
 
 type Repository interface {
-	CreateShortURL(shortURL, originalURL string) (string, error)
-	GetOriginalURL(originalURL string) (string, error)
+	CreateShortURL(ctx context.Context, shortURL, originalURL string) (string, error)
+	GetOriginalURL(ctx context.Context, originalURL string) (string, error)
 	Ping(ctx context.Context) error
-	CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error)
+	CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error)
 }
 
 type ServiceURL struct {
@@ -29,9 +29,9 @@ func NewServiceURL(r Repository) *ServiceURL {
 	}
 }
 
-func (s *ServiceURL) CreateShortURL(originalURL string) (string, error) {
+func (s *ServiceURL) CreateShortURL(ctx context.Context, originalURL string) (string, error) {
 	shortURL := randString()
-	id, err := s.Repository.CreateShortURL(originalURL, shortURL)
+	id, err := s.Repository.CreateShortURL(ctx, originalURL, shortURL)
 	if err != nil {
 		if errors.Is(err, cerror.ErrAlreadyExist) {
 			return id, cerror.ErrAlreadyExist
@@ -41,8 +41,8 @@ func (s *ServiceURL) CreateShortURL(originalURL string) (string, error) {
 	return id, nil
 }
 
-func (s *ServiceURL) GetOriginalURL(shortURL string) (string, error) {
-	originalURL, ok := s.Repository.GetOriginalURL(shortURL)
+func (s *ServiceURL) GetOriginalURL(ctx context.Context, shortURL string) (string, error) {
+	originalURL, ok := s.Repository.GetOriginalURL(ctx, shortURL)
 	return originalURL, ok
 }
 
@@ -50,13 +50,13 @@ func (s *ServiceURL) Ping(ctx context.Context) error {
 	return s.Repository.Ping(ctx)
 }
 
-func (s *ServiceURL) CreateShortURLs(urls []model.ReqURL) ([]model.ReqURL, error) {
+func (s *ServiceURL) CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error) {
 	for i := range urls {
 		shortURL := randString()
 		urls[i].ShortURL = shortURL
 	}
 
-	res, err := s.Repository.CreateShortURLs(urls)
+	res, err := s.Repository.CreateShortURLs(ctx, urls)
 	if err != nil {
 		return nil, err
 	}
