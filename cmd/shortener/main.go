@@ -1,10 +1,9 @@
 package main
 
 import (
-	"log"
-
 	"github.com/akmyrzza/go-musthave-shortener/internal/app"
 	"github.com/akmyrzza/go-musthave-shortener/internal/config"
+	"log"
 )
 
 func main() {

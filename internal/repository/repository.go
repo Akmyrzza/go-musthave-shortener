@@ -1,21 +1,19 @@
 package repository
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
+	"github.com/akmyrzza/go-musthave-shortener/internal/model"
+	"github.com/akmyrzza/go-musthave-shortener/internal/repository/pgsql"
+	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"io"
 	"log"
 	"os"
 	"strconv"
-
-	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 )
-
-type Repository interface {
-	CreateID(id, originalURL string) error
-	GetURL(id string) (string, bool)
-}
 
 type inMemory struct {
 	dataURL map[string]string
@@ -35,7 +33,15 @@ type tmpStorage struct {
 
 var Permission = 0600
 
-func NewRepo(filePath string) (Repository, error) {
+func NewRepo(databasePath, filePath string) (service.Repository, error) {
+	database, err := pgsql.InitDatabase(databasePath)
+	if err != nil {
+		log.Println(err)
+	}
+
+	if database != nil {
+		return database, nil
+	}
 
 	inMemoryStore := initInMemoryStore()
 
@@ -45,7 +51,7 @@ func NewRepo(filePath string) (Repository, error) {
 
 	fileStore, err := initFileStore(inMemoryStore, filePath)
 	if err != nil {
-		return nil, fmt.Errorf("initialiizing file store: %w", err)
+		return nil, fmt.Errorf("initialiizing file pgsql: %w", err)
 	}
 
 	return fileStore, nil
@@ -92,39 +98,81 @@ func initFileStore(m *inMemory, filePath string) (*localRepository, error) {
 	return ptrLocal, nil
 }
 
-func (s *inMemory) CreateID(shortURL, originalURL string) error {
+func (s *inMemory) CreateShortURL(_ context.Context, originalURL, shortURL string) (string, error) {
 	_, found := s.dataURL[shortURL]
 	if found {
-		return cerror.ErrAlreadyExist
+		return "", cerror.ErrAlreadyExist
 	}
 
 	s.dataURL[shortURL] = originalURL
 
-	return nil
+	return shortURL, nil
 }
 
-func (s *inMemory) GetURL(id string) (string, bool) {
+func (s *inMemory) GetOriginalURL(_ context.Context, id string) (string, error) {
 	originalURL, ok := s.dataURL[id]
-	return originalURL, ok
+	if !ok {
+		return "", fmt.Errorf("not found in base: %s", id)
+	}
+
+	return originalURL, nil
 }
 
-func (s *localRepository) CreateID(shortURL, originalURL string) error {
-	if err := s.inMemoryRepo.CreateID(shortURL, originalURL); err != nil {
-		return err
-	}
-
-	if err := saveInLocalDatabase(s, shortURL, originalURL); err != nil {
-		return err
-	}
-
+func (s *inMemory) Ping(_ context.Context) error {
 	return nil
 }
 
-func (s *localRepository) GetURL(id string) (string, bool) {
-	return s.inMemoryRepo.GetURL(id)
+func (s *inMemory) CreateShortURLs(_ context.Context, urls []model.ReqURL) ([]model.ReqURL, error) {
+	for _, v := range urls {
+		_, found := s.dataURL[v.ShortURL]
+		if found {
+			return nil, fmt.Errorf("already exist in base: %s", v.ShortURL)
+		}
+
+		s.dataURL[v.ShortURL] = v.OriginalURL
+	}
+
+	return urls, nil
 }
 
-func saveInLocalDatabase(s *localRepository, shortURL, originalURL string) error {
+func (s *localRepository) CreateShortURL(ctx context.Context, originalURL, shortURL string) (string, error) {
+	id, err := s.inMemoryRepo.CreateShortURL(ctx, originalURL, shortURL)
+	if err != nil {
+		return "", err
+	}
+
+	if err := saveInLocalDatabase(s, originalURL, shortURL); err != nil {
+		return "", err
+	}
+
+	return id, nil
+}
+
+func (s *localRepository) GetOriginalURL(ctx context.Context, originalURL string) (string, error) {
+	return s.inMemoryRepo.GetOriginalURL(ctx, originalURL)
+}
+
+func (s *localRepository) Ping(_ context.Context) error {
+	return nil
+}
+
+func (s *localRepository) CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error) {
+	urls, err := s.inMemoryRepo.CreateShortURLs(ctx, urls)
+	if err != nil {
+		return nil, fmt.Errorf("saving in memory error: %w", err)
+	}
+
+	for i, v := range urls {
+		if err := saveInLocalDatabase(s, v.OriginalURL, v.ShortURL); err != nil {
+			return nil, fmt.Errorf("saving in file error: %w", err)
+		}
+		urls[i].OriginalURL = ""
+	}
+
+	return urls, nil
+}
+
+func saveInLocalDatabase(s *localRepository, originalURL, shortURL string) error {
 	s.maxRecord++
 
 	var tmpRecord tmpStorage
