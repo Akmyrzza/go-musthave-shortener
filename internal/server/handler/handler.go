@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 	"github.com/akmyrzza/go-musthave-shortener/internal/model"
 	"io"
@@ -18,6 +19,7 @@ type ServiceURL interface {
 	GetOriginalURL(ctx context.Context, shortURL string) (string, error)
 	Ping(ctx context.Context) error
 	CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error)
+	GetAllURLs(ctx context.Context, userID int) ([]model.UserData, error)
 }
 
 type Handler struct {
@@ -33,13 +35,17 @@ func NewHandler(s ServiceURL, b string) *Handler {
 }
 
 func (h *Handler) CreateShortURL(ctx *gin.Context) {
+	userID, _ := ctx.Get("userID")
+	c := ctx.Request.Context()
+	newContext := context.WithValue(c, "userID", userID.(int))
+
 	reqBody, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "bad request body"})
 		return
 	}
 
-	id, cerr := h.Service.CreateShortURL(ctx.Request.Context(), string(reqBody))
+	id, cerr := h.Service.CreateShortURL(newContext, string(reqBody))
 	if cerr != nil {
 		if cerr != cerror.ErrAlreadyExist {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
@@ -129,6 +135,10 @@ func (h *Handler) Ping(ctx *gin.Context) {
 }
 
 func (h *Handler) CreateShortURLs(ctx *gin.Context) {
+	userID, _ := ctx.Get("userID")
+	c := ctx.Request.Context()
+	newContext := context.WithValue(c, "userID", userID.(int))
+
 	reqBody, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "bad request body"})
@@ -142,7 +152,7 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 		return
 	}
 
-	tmpURLs, err = h.Service.CreateShortURLs(ctx.Request.Context(), tmpURLs)
+	tmpURLs, err = h.Service.CreateShortURLs(newContext, tmpURLs)
 	if err != nil {
 		log.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "creating id error"})
@@ -161,4 +171,30 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusCreated, tmpURLs)
+}
+
+func (h *Handler) GetAllURLs(ctx *gin.Context) {
+	userID, _ := ctx.Get("userID")
+	data, err := h.Service.GetAllURLs(ctx.Request.Context(), userID.(int))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	if len(data) == 0 {
+		ctx.JSON(http.StatusNoContent, nil)
+		return
+	}
+
+	for i, v := range data {
+		resultString, err := url.JoinPath(h.BaseURL, v.ShortURL)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, fmt.Errorf("joining path : %w", err))
+			return
+		}
+		data[i].ShortURL = resultString
+	}
+
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusCreated, data)
 }

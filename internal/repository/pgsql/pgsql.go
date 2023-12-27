@@ -29,7 +29,6 @@ func InitDatabase(DatabasePath string) (service.Repository, error) {
 		return nil, errors.New("error database path empty")
 	}
 
-	//db, err := sql.Open("pgx", DatabasePath)
 	db, err := pgxpool.New(context.Background(), DatabasePath)
 	if err != nil {
 		return nil, fmt.Errorf("error opening db: %w", err)
@@ -91,8 +90,8 @@ func (s *StoreDB) CreateShortURL(ctx context.Context, originalURL, shortURL stri
 	result := tx.QueryRow(ctx, queryGet, originalURL)
 	if err := result.Scan(&id); err != nil {
 		if err == pgx.ErrNoRows {
-			query := `INSERT INTO urls (originalURL, shortURL) VALUES ($1, $2)`
-			_, err := tx.Exec(ctx, query, originalURL, shortURL)
+			query := `INSERT INTO urls (originalURL, shortURL, userID) VALUES ($1, $2, $3)`
+			_, err := tx.Exec(ctx, query, originalURL, shortURL, ctx.Value("userID"))
 			if err != nil {
 				return "", fmt.Errorf("error: db query exec: %w", err)
 			}
@@ -139,7 +138,7 @@ func (s *StoreDB) CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]m
 	batch := &pgx.Batch{}
 
 	for i, v := range urls {
-		batch.Queue("INSERT INTO urls (originalURL, shortURL) VALUES($1, $2)", v.OriginalURL, v.ShortURL)
+		batch.Queue("INSERT INTO urls (originalURL, shortURL) VALUES($1, $2)", v.OriginalURL, v.ShortURL, ctx.Value("userID"))
 		urls[i].OriginalURL = ""
 	}
 
@@ -156,4 +155,25 @@ func (s *StoreDB) CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]m
 	}
 
 	return urls, nil
+}
+
+func (s *StoreDB) GetAllURLs(ctx context.Context, userID int) ([]model.UserData, error) {
+	query := `SELECT shortURL, originalURL from urls WHERE userID = $1`
+	rows, err := s.DB.Query(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("query :%w", err)
+	}
+
+	var data []model.UserData
+	for rows.Next() {
+		var row model.UserData
+		err := rows.Scan(&row.ShortURL, &row.OriginalURL)
+		if err != nil {
+			return nil, fmt.Errorf("scanning data: %w", err)
+		}
+
+		data = append(data, row)
+	}
+
+	return data, nil
 }
