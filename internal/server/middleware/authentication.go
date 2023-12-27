@@ -59,7 +59,7 @@ func CreateToken() (string, error) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TOKEN_EXP)),
 		},
-		UserID: int(uuid.New()),
+		UserID: int(uuid.New().ID()),
 	})
 
 	tokenString, err := token.SignedString([]byte(SECRET_KEY))
