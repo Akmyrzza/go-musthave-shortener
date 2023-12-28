@@ -135,7 +135,7 @@ func (s *inMemory) CreateShortURLs(_ context.Context, urls []model.ReqURL) ([]mo
 	return urls, nil
 }
 
-func (s *inMemory) GetAllURLs(ctx context.Context, userID int) ([]model.UserData, error) {
+func (s *inMemory) GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error) {
 	return nil, nil
 }
 
@@ -176,7 +176,7 @@ func (s *localRepository) CreateShortURLs(ctx context.Context, urls []model.ReqU
 	return urls, nil
 }
 
-func (s *localRepository) GetAllURLs(ctx context.Context, userID int) ([]model.UserData, error) {
+func (s *localRepository) GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error) {
 	return nil, nil
 }
 

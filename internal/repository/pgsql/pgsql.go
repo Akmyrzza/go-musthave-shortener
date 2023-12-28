@@ -157,7 +157,7 @@ func (s *StoreDB) CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]m
 	return urls, nil
 }
 
-func (s *StoreDB) GetAllURLs(ctx context.Context, userID int) ([]model.UserData, error) {
+func (s *StoreDB) GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error) {
 	query := `SELECT shortURL, originalURL from urls WHERE userID = $1`
 	rows, err := s.DB.Query(ctx, query, userID)
 	if err != nil {

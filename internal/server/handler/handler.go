@@ -19,7 +19,7 @@ type ServiceURL interface {
 	GetOriginalURL(ctx context.Context, shortURL string) (string, error)
 	Ping(ctx context.Context) error
 	CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error)
-	GetAllURLs(ctx context.Context, userID int) ([]model.UserData, error)
+	GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error)
 }
 
 type Handler struct {
@@ -181,7 +181,7 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 
 func (h *Handler) GetAllURLs(ctx *gin.Context) {
 	userID, _ := ctx.Get("userID")
-	data, err := h.Service.GetAllURLs(ctx.Request.Context(), userID.(int))
+	data, err := h.Service.GetAllURLs(ctx.Request.Context(), userID.(string))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, err)
 		return
