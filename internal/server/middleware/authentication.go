@@ -26,7 +26,7 @@ func Authentication() gin.HandlerFunc {
 			if errToken != nil {
 				ctx.AbortWithStatus(http.StatusInternalServerError)
 			}
-			return
+			ctx.AbortWithStatus(http.StatusUnauthorized)
 		}
 
 		userID, err := getUserId(userToken)
