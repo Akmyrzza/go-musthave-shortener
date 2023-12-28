@@ -35,7 +35,10 @@ func NewHandler(s ServiceURL, b string) *Handler {
 }
 
 func (h *Handler) CreateShortURL(ctx *gin.Context) {
-	userID, _ := ctx.Get("userID")
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		userID = 0
+	}
 	c := ctx.Request.Context()
 	newContext := context.WithValue(c, "userID", userID.(int))
 
@@ -135,7 +138,10 @@ func (h *Handler) Ping(ctx *gin.Context) {
 }
 
 func (h *Handler) CreateShortURLs(ctx *gin.Context) {
-	userID, _ := ctx.Get("userID")
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		userID = 0
+	}
 	c := ctx.Request.Context()
 	newContext := context.WithValue(c, "userID", userID.(int))
 
