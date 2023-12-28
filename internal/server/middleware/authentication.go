@@ -15,8 +15,8 @@ type Claims struct {
 	UserID string
 }
 
-const TOKEN_EXP = time.Hour
-const SECRET_KEY = "supersecretkey"
+const TokenExp = time.Hour
+const SecretKey = "supersecretkey"
 
 func Authentication() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
@@ -29,7 +29,7 @@ func Authentication() gin.HandlerFunc {
 			return
 		}
 
-		userID, err := getUserId(userToken)
+		userID, err := getUserID(userToken)
 		if err != nil {
 			if !errors.Is(err, jwt.ErrTokenNotValidYet) {
 				ctx.AbortWithStatus(http.StatusUnauthorized)
@@ -51,7 +51,7 @@ func setToken(ctx *gin.Context) error {
 		return err
 	}
 
-	ctx.SetCookie("UserToken", token, int(TOKEN_EXP.Seconds()), "/", "localhost", false, true)
+	ctx.SetCookie("UserToken", token, int(TokenExp.Seconds()), "/", "localhost", false, true)
 	ctx.Set("userID", userID)
 	ctx.Set("newUser", true)
 	return nil
@@ -61,12 +61,12 @@ func CreateToken() (string, string, error) {
 	userID := uuid.New().String()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TOKEN_EXP)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExp)),
 		},
 		UserID: userID,
 	})
 
-	tokenString, err := token.SignedString([]byte(SECRET_KEY))
+	tokenString, err := token.SignedString([]byte(SecretKey))
 	if err != nil {
 		return "", "", fmt.Errorf("token signing :%w", err)
 	}
@@ -74,11 +74,11 @@ func CreateToken() (string, string, error) {
 	return tokenString, userID, nil
 }
 
-func getUserId(tokenString string) (string, error) {
+func getUserID(tokenString string) (string, error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims,
 		func(t *jwt.Token) (interface{}, error) {
-			return []byte(SECRET_KEY), nil
+			return []byte(SecretKey), nil
 		})
 	if err != nil {
 		return "", fmt.Errorf("token parsing: %w", err)
