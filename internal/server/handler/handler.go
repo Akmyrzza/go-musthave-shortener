@@ -27,6 +27,8 @@ type Handler struct {
 	BaseURL string
 }
 
+type KeyUserID string
+
 func NewHandler(s ServiceURL, b string) *Handler {
 	return &Handler{
 		Service: s,
@@ -37,10 +39,9 @@ func NewHandler(s ServiceURL, b string) *Handler {
 func (h *Handler) CreateShortURL(ctx *gin.Context) {
 	userID, exists := ctx.Get("userID")
 	if !exists {
-		userID = 0
+		userID = ""
 	}
-	c := ctx.Request.Context()
-	newContext := context.WithValue(c, "userID", userID.(int))
+	newContext := context.WithValue(ctx.Request.Context(), "userID", userID.(string))
 
 	reqBody, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
@@ -140,10 +141,9 @@ func (h *Handler) Ping(ctx *gin.Context) {
 func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 	userID, exists := ctx.Get("userID")
 	if !exists {
-		userID = 0
+		userID = ""
 	}
-	c := ctx.Request.Context()
-	newContext := context.WithValue(c, "userID", userID.(int))
+	newContext := context.WithValue(ctx.Request.Context(), "userID", userID.(string))
 
 	reqBody, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
@@ -202,5 +202,5 @@ func (h *Handler) GetAllURLs(ctx *gin.Context) {
 	}
 
 	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusCreated, data)
+	ctx.JSON(http.StatusOK, data)
 }

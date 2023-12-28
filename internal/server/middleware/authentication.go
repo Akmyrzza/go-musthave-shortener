@@ -11,7 +11,7 @@ import (
 
 type Claims struct {
 	jwt.RegisteredClaims
-	UserID int
+	UserID string
 }
 
 const TOKEN_EXP = time.Hour
@@ -58,7 +58,7 @@ func CreateToken() (string, error) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TOKEN_EXP)),
 		},
-		UserID: int(uuid.New().ID()),
+		UserID: uuid.New().String(),
 	})
 
 	tokenString, err := token.SignedString([]byte(SECRET_KEY))
@@ -69,18 +69,18 @@ func CreateToken() (string, error) {
 	return tokenString, nil
 }
 
-func getUserId(tokenString string) (int, error) {
+func getUserId(tokenString string) (string, error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims,
 		func(t *jwt.Token) (interface{}, error) {
 			return []byte(SECRET_KEY), nil
 		})
 	if err != nil {
-		return 0, fmt.Errorf("token parsing: %w", err)
+		return "", fmt.Errorf("token parsing: %w", err)
 	}
 
 	if !token.Valid {
-		return 0, jwt.ErrTokenNotValidYet
+		return "", jwt.ErrTokenNotValidYet
 	}
 
 	return claims.UserID, nil

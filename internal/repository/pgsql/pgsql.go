@@ -85,13 +85,13 @@ func (s *StoreDB) CreateShortURL(ctx context.Context, originalURL, shortURL stri
 		}
 
 	}()
-
 	queryGet := `SELECT shortURL FROM urls WHERE originalURL = $1`
 	result := tx.QueryRow(ctx, queryGet, originalURL)
 	if err := result.Scan(&id); err != nil {
 		if err == pgx.ErrNoRows {
 			query := `INSERT INTO urls (originalURL, shortURL, userID) VALUES ($1, $2, $3)`
-			_, err := tx.Exec(ctx, query, originalURL, shortURL, ctx.Value("userID"))
+			userID := ctx.Value("userID")
+			_, err := tx.Exec(ctx, query, originalURL, shortURL, userID)
 			if err != nil {
 				return "", fmt.Errorf("error: db query exec: %w", err)
 			}
