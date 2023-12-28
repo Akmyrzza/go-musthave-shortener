@@ -41,7 +41,9 @@ func (h *Handler) CreateShortURL(ctx *gin.Context) {
 	if !exists {
 		userID = ""
 	}
-	newContext := context.WithValue(ctx.Request.Context(), "userID", userID.(string))
+
+	user := userID.(string)
+	newContext := context.WithValue(ctx.Request.Context(), "userID", user)
 
 	reqBody, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
