@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
@@ -30,9 +31,9 @@ func Authentication() gin.HandlerFunc {
 
 		userID, err := getUserId(userToken)
 		if err != nil {
-			//if !errors.Is(err, jwt.ErrTokenNotValidYet) {
-			//	ctx.AbortWithStatus(http.StatusUnauthorized)
-			//}
+			if !errors.Is(err, jwt.ErrTokenNotValidYet) {
+				ctx.AbortWithStatus(http.StatusUnauthorized)
+			}
 
 			errToken := setToken(ctx)
 			if errToken != nil {
