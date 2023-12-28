@@ -27,8 +27,6 @@ type Handler struct {
 	BaseURL string
 }
 
-type KeyUserID string
-
 func NewHandler(s ServiceURL, b string) *Handler {
 	return &Handler{
 		Service: s,
@@ -43,7 +41,7 @@ func (h *Handler) CreateShortURL(ctx *gin.Context) {
 	}
 
 	user := userID.(string)
-	newContext := context.WithValue(ctx.Request.Context(), KeyUserID("userID"), user)
+	newContext := context.WithValue(ctx.Request.Context(), model.KeyUserID("userID"), user)
 
 	reqBody, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {

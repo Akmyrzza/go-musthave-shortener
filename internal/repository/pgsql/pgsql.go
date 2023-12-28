@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 	"github.com/akmyrzza/go-musthave-shortener/internal/model"
-	"github.com/akmyrzza/go-musthave-shortener/internal/server/handler"
 	"github.com/akmyrzza/go-musthave-shortener/internal/service"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -91,7 +90,7 @@ func (s *StoreDB) CreateShortURL(ctx context.Context, originalURL, shortURL stri
 	if err := result.Scan(&id); err != nil {
 		if err == pgx.ErrNoRows {
 			query := `INSERT INTO urls (originalURL, shortURL, userID) VALUES ($1, $2, $3)`
-			userID := ctx.Value(handler.KeyUserID("userID"))
+			userID := ctx.Value(model.KeyUserID("userID"))
 			_, err := tx.Exec(ctx, query, originalURL, shortURL, userID)
 			if err != nil {
 				return "", fmt.Errorf("error: db query exec: %w", err)
