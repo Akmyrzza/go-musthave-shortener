@@ -43,7 +43,7 @@ func (h *Handler) CreateShortURL(ctx *gin.Context) {
 	}
 
 	user := userID.(string)
-	newContext := context.WithValue(ctx.Request.Context(), "userID", user)
+	newContext := context.WithValue(ctx.Request.Context(), KeyUserID("userID"), user)
 
 	reqBody, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
