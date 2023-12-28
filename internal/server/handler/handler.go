@@ -143,7 +143,7 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 	if !exists {
 		userID = ""
 	}
-	newContext := context.WithValue(ctx.Request.Context(), "userID", userID.(string))
+	newContext := context.WithValue(ctx.Request.Context(), model.KeyUserID("userID"), userID.(string))
 
 	reqBody, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {

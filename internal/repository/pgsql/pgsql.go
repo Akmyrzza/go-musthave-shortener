@@ -138,7 +138,8 @@ func (s *StoreDB) CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]m
 	batch := &pgx.Batch{}
 
 	for i, v := range urls {
-		batch.Queue("INSERT INTO urls (originalURL, shortURL, userID) VALUES($1, $2, $3)", v.OriginalURL, v.ShortURL, ctx.Value("userID"))
+		userID := ctx.Value(model.KeyUserID("userID"))
+		batch.Queue("INSERT INTO urls (originalURL, shortURL, userID) VALUES($1, $2, $3)", v.OriginalURL, v.ShortURL, userID)
 		urls[i].OriginalURL = ""
 	}
 
