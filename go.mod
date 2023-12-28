@@ -5,8 +5,10 @@ go 1.21.1
 require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/gin-gonic/gin v1.9.1
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/golang/mock v1.6.0
+	github.com/google/uuid v1.5.0
 	github.com/jackc/pgx/v5 v5.3.1
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.26.0
