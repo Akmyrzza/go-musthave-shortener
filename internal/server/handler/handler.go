@@ -180,6 +180,11 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 }
 
 func (h *Handler) GetAllURLs(ctx *gin.Context) {
+	newUser, exists := ctx.Get("newUser")
+	if exists && newUser.(bool) {
+		ctx.JSON(http.StatusUnauthorized, nil)
+	}
+
 	userID, _ := ctx.Get("userID")
 	data, err := h.Service.GetAllURLs(ctx.Request.Context(), userID.(string))
 	if err != nil {

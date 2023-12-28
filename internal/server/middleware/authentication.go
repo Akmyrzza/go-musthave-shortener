@@ -26,7 +26,7 @@ func Authentication() gin.HandlerFunc {
 			if errToken != nil {
 				ctx.AbortWithStatus(http.StatusInternalServerError)
 			}
-			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
 		}
 
 		userID, err := getUserId(userToken)
@@ -53,6 +53,7 @@ func setToken(ctx *gin.Context) error {
 
 	ctx.SetCookie("UserToken", token, int(TOKEN_EXP.Seconds()), "/", "localhost", false, true)
 	ctx.Set("userID", userID)
+	ctx.Set("newUser", true)
 	return nil
 }
 
