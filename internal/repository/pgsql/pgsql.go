@@ -178,3 +178,30 @@ func (s *StoreDB) GetAllURLs(ctx context.Context, userID string) ([]model.UserDa
 
 	return data, nil
 }
+
+func (s *StoreDB) DeleteURLs(ctx context.Context, userID string, uuid string) error {
+	fmt.Println(userID, uuid)
+
+	//tx, err := s.DB.Begin(ctx)
+	//if err != nil {
+	//	return fmt.Errorf("transaction error: %w", err)
+	//}
+	//defer func() {
+	//	if err != nil {
+	//		if rbErr := tx.Rollback(ctx); rbErr != nil {
+	//			log.Printf("error rollback: %v", rbErr)
+	//		}
+	//	} else {
+	//		if cmErr := tx.Commit(ctx); cmErr != nil {
+	//			log.Printf("error commit: %v", cmErr)
+	//		}
+	//	}
+	//}()
+
+	tx := s.DB
+
+	queryGet := `UPDATE urls SET isDeleted = true WHERE userID = $1 AND shortURL = $2`
+	_, err := tx.Exec(ctx, queryGet, userID, uuid)
+
+	return err
+}

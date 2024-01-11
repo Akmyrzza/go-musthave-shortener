@@ -20,6 +20,8 @@ type ServiceURL interface {
 	Ping(ctx context.Context) error
 	CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error)
 	GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error)
+	DeleteURLs(ctx context.Context, userID string, inputCh chan string) chan error
+	Gen(uuidURLs []string) chan string
 }
 
 type Handler struct {
@@ -208,4 +210,30 @@ func (h *Handler) GetAllURLs(ctx *gin.Context) {
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, data)
+}
+
+func (h *Handler) DeleteURLs(ctx *gin.Context) {
+	newUser, exists := ctx.Get("newUser")
+	if exists && newUser.(bool) {
+		ctx.JSON(http.StatusUnauthorized, nil)
+	}
+
+	userID, _ := ctx.Get("userID")
+
+	var uuidURLs []string
+
+	if err := ctx.BindJSON(&uuidURLs); err != nil {
+		ctx.JSON(http.StatusInternalServerError, nil)
+		return
+	}
+
+	ctx.AbortWithStatus(http.StatusAccepted)
+
+	inputCh := h.Service.Gen(uuidURLs)
+
+	for _ = range h.Service.DeleteURLs(ctx.Request.Context(), userID.(string), inputCh) {
+
+	}
+
+	fmt.Println("Ended")
 }

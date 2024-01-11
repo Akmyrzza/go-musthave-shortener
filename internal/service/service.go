@@ -18,6 +18,7 @@ type Repository interface {
 	Ping(ctx context.Context) error
 	CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error)
 	GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error)
+	DeleteURLs(ctx context.Context, userID string, uuid string) error
 }
 
 type ServiceURL struct {
@@ -67,6 +68,32 @@ func (s *ServiceURL) CreateShortURLs(ctx context.Context, urls []model.ReqURL) (
 func (s *ServiceURL) GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error) {
 	data, err := s.Repository.GetAllURLs(ctx, userID)
 	return data, err
+}
+
+func (s *ServiceURL) DeleteURLs(ctx context.Context, userID string, inputCh chan string) chan error {
+	resultCh := make(chan error)
+
+	go func() {
+		for i := range inputCh {
+			resultCh <- s.Repository.DeleteURLs(ctx, userID, i)
+		}
+		close(resultCh)
+	}()
+
+	return resultCh
+}
+
+func (s *ServiceURL) Gen(uuidURLs []string) chan string {
+	resultCh := make(chan string)
+
+	go func() {
+		for _, v := range uuidURLs {
+			resultCh <- v
+		}
+		close(resultCh)
+	}()
+
+	return resultCh
 }
 
 func randString() string {

@@ -139,6 +139,10 @@ func (s *inMemory) GetAllURLs(ctx context.Context, userID string) ([]model.UserD
 	return nil, nil
 }
 
+func (s *inMemory) DeleteURLs(_ context.Context, _ string, _ string) error {
+	return nil
+}
+
 func (s *localRepository) CreateShortURL(ctx context.Context, originalURL, shortURL string) (string, error) {
 	id, err := s.inMemoryRepo.CreateShortURL(ctx, originalURL, shortURL)
 	if err != nil {
@@ -176,8 +180,12 @@ func (s *localRepository) CreateShortURLs(ctx context.Context, urls []model.ReqU
 	return urls, nil
 }
 
-func (s *localRepository) GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error) {
+func (s *localRepository) GetAllURLs(_ context.Context, _ string) ([]model.UserData, error) {
 	return nil, nil
+}
+
+func (s *localRepository) DeleteURLs(_ context.Context, _ string, _ string) error {
+	return nil
 }
 
 func saveInLocalDatabase(s *localRepository, originalURL, shortURL string) error {
