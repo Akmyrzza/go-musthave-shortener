@@ -69,6 +69,10 @@ func (s *ServiceURL) GetAllURLs(ctx context.Context, userID string) ([]model.Use
 	return data, err
 }
 
+func (s *ServiceURL) DeleteURLs(ctx context.Context) {
+
+}
+
 func randString() string {
 	letterBytes := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	b := make([]byte, RandLength)

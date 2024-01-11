@@ -20,6 +20,7 @@ type ServiceURL interface {
 	Ping(ctx context.Context) error
 	CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error)
 	GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error)
+	DeleteURLs(ctx context.Context)
 }
 
 type Handler struct {
@@ -208,4 +209,33 @@ func (h *Handler) GetAllURLs(ctx *gin.Context) {
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, data)
+}
+
+func (h *Handler) DeleteURLs(ctx *gin.Context) {
+	newUser, exists := ctx.Get("newUser")
+	if exists && newUser.(bool) {
+		ctx.JSON(http.StatusUnauthorized, nil)
+	}
+
+	userID, _ := ctx.Get("userID")
+	fmt.Println(userID)
+
+	reqBody, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "bad request body"})
+		return
+	}
+
+	var data []string
+	if err = json.Unmarshal(reqBody, &data); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "bad request body"})
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, nil)
+
+	user := userID.(string)
+	newContext := context.WithValue(ctx.Request.Context(), model.KeyUserID("userID"), user)
+
+	h.Service.DeleteURLs(newContext)
 }

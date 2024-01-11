@@ -22,6 +22,7 @@ func InitRouter(h *handler.Handler, l *zap.Logger) *gin.Engine {
 	router.GET("/ping", h.Ping)
 	router.POST("/api/shorten/batch", h.CreateShortURLs)
 	router.GET("/api/user/urls", h.GetAllURLs)
+	router.DELETE("/api/user/urls", h.DeleteURLs)
 
 	return router
 }
