@@ -237,10 +237,10 @@ func (h *Handler) DeleteURLs(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusAccepted, nil)
-
 	user := userID.(string)
 	newContext := context.WithValue(ctx.Request.Context(), model.KeyUserID("userID"), user)
 
 	h.Service.DeleteURLs(newContext, data)
+
+	ctx.AbortWithStatus(http.StatusAccepted)
 }
