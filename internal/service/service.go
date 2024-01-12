@@ -72,7 +72,7 @@ func (s *ServiceURL) GetAllURLs(ctx context.Context, userID string) ([]model.Use
 
 func (s *ServiceURL) DeleteURLs(ctx context.Context, data []string) {
 	go func() {
-		s.DeleteURLs(ctx, data)
+		s.Repository.DeleteURLs(ctx, data)
 	}()
 }
 
