@@ -24,9 +24,8 @@ type ServiceURL interface {
 }
 
 type Handler struct {
-	Service   ServiceURL
-	BaseURL   string
-	isDeleted bool
+	Service ServiceURL
+	BaseURL string
 }
 
 func NewHandler(s ServiceURL, b string) *Handler {
