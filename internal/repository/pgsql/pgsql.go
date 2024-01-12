@@ -201,7 +201,7 @@ func (s *StoreDB) DeleteURLs(ctx context.Context, userID string, data []string) 
 	batch := &pgx.Batch{}
 
 	for _, v := range data {
-		batch.Queue("UPDATE urls (isDeleted) = true WHERE userID = $1 AND shortURL = $2", userID, v)
+		batch.Queue("UPDATE urls SET isDeleted = true WHERE userID = $1 AND shortURL = $2", userID, v)
 	}
 
 	br := tx.SendBatch(ctx, batch)
