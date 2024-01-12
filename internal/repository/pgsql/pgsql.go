@@ -102,19 +102,20 @@ func (s *StoreDB) CreateShortURL(ctx context.Context, originalURL, shortURL stri
 	return id, cerror.ErrAlreadyExist
 }
 
-func (s *StoreDB) GetOriginalURL(ctx context.Context, shortURL string) (string, error) {
+func (s *StoreDB) GetOriginalURL(ctx context.Context, shortURL string) (string, bool, error) {
 	var url string
+	var isDeleted bool
 
-	query := `SELECT originalURL from urls WHERE shortURL = $1`
+	query := `SELECT originalURL, isDeleted from urls WHERE shortURL = $1`
 
 	row := s.DB.QueryRow(ctx, query, shortURL)
 
-	err := row.Scan(&url)
+	err := row.Scan(&url, &isDeleted)
 	if err != nil {
-		return "", fmt.Errorf("error: db query: %w", err)
+		return "", isDeleted, fmt.Errorf("error: db query: %w", err)
 	}
 
-	return url, nil
+	return url, isDeleted, nil
 }
 
 func (s *StoreDB) CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error) {
@@ -177,4 +178,42 @@ func (s *StoreDB) GetAllURLs(ctx context.Context, userID string) ([]model.UserDa
 	}
 
 	return data, nil
+}
+
+func (s *StoreDB) DeleteURLs(ctx context.Context, data []string) {
+	tx, err := s.DB.Begin(ctx)
+	if err != nil {
+		log.Printf("error, transaction begin: %v", err)
+	}
+	defer func() {
+		if err != nil {
+			if rbErr := tx.Rollback(ctx); rbErr != nil {
+				log.Printf("error rollback: %v", rbErr)
+			}
+		} else {
+			if cmErr := tx.Commit(ctx); cmErr != nil {
+				log.Printf("error commit: %v", cmErr)
+			}
+		}
+
+	}()
+
+	batch := &pgx.Batch{}
+
+	for _, v := range data {
+		userID := ctx.Value(model.KeyUserID("userID"))
+		batch.Queue("UPDATE urls (isDeleted) = true WHERE userID = $1 AND shortURL = $2", userID, v)
+	}
+
+	br := tx.SendBatch(ctx, batch)
+	defer func() {
+		if err := br.Close(); err != nil {
+			log.Printf("error batch close: %d", err)
+		}
+	}()
+
+	_, err = br.Exec()
+	if err != nil {
+		log.Printf("batch execution error: %v", err)
+	}
 }

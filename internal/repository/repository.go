@@ -109,13 +109,13 @@ func (s *inMemory) CreateShortURL(_ context.Context, originalURL, shortURL strin
 	return shortURL, nil
 }
 
-func (s *inMemory) GetOriginalURL(_ context.Context, id string) (string, error) {
+func (s *inMemory) GetOriginalURL(_ context.Context, id string) (string, bool, error) {
 	originalURL, ok := s.dataURL[id]
 	if !ok {
-		return "", fmt.Errorf("not found in base: %s", id)
+		return "", false, fmt.Errorf("not found in base: %s", id)
 	}
 
-	return originalURL, nil
+	return originalURL, false, nil
 }
 
 func (s *inMemory) Ping(_ context.Context) error {
@@ -139,6 +139,8 @@ func (s *inMemory) GetAllURLs(ctx context.Context, userID string) ([]model.UserD
 	return nil, nil
 }
 
+func (s *inMemory) DeleteURLs(_ context.Context, _ []string) {}
+
 func (s *localRepository) CreateShortURL(ctx context.Context, originalURL, shortURL string) (string, error) {
 	id, err := s.inMemoryRepo.CreateShortURL(ctx, originalURL, shortURL)
 	if err != nil {
@@ -152,7 +154,7 @@ func (s *localRepository) CreateShortURL(ctx context.Context, originalURL, short
 	return id, nil
 }
 
-func (s *localRepository) GetOriginalURL(ctx context.Context, originalURL string) (string, error) {
+func (s *localRepository) GetOriginalURL(ctx context.Context, originalURL string) (string, bool, error) {
 	return s.inMemoryRepo.GetOriginalURL(ctx, originalURL)
 }
 
@@ -179,6 +181,8 @@ func (s *localRepository) CreateShortURLs(ctx context.Context, urls []model.ReqU
 func (s *localRepository) GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error) {
 	return nil, nil
 }
+
+func (s *localRepository) DeleteURLs(_ context.Context, _ []string) {}
 
 func saveInLocalDatabase(s *localRepository, originalURL, shortURL string) error {
 	s.maxRecord++
