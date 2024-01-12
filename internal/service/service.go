@@ -18,7 +18,7 @@ type Repository interface {
 	Ping(ctx context.Context) error
 	CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error)
 	GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error)
-	DeleteURLs(ctx context.Context, data []string)
+	DeleteURLs(ctx context.Context, userID string, data []string)
 }
 
 type ServiceURL struct {
@@ -70,9 +70,9 @@ func (s *ServiceURL) GetAllURLs(ctx context.Context, userID string) ([]model.Use
 	return data, err
 }
 
-func (s *ServiceURL) DeleteURLs(ctx context.Context, data []string) {
+func (s *ServiceURL) DeleteURLs(ctx context.Context, userID string, data []string) {
 	go func() {
-		s.Repository.DeleteURLs(ctx, data)
+		s.Repository.DeleteURLs(ctx, userID, data)
 	}()
 }
 

@@ -20,7 +20,7 @@ type ServiceURL interface {
 	Ping(ctx context.Context) error
 	CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error)
 	GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error)
-	DeleteURLs(ctx context.Context, data []string)
+	DeleteURLs(ctx context.Context, userID string, data []string)
 }
 
 type Handler struct {
@@ -237,10 +237,7 @@ func (h *Handler) DeleteURLs(ctx *gin.Context) {
 		return
 	}
 
-	user := userID.(string)
-	newContext := context.WithValue(ctx.Request.Context(), model.KeyUserID("userID"), user)
-
-	h.Service.DeleteURLs(newContext, data)
+	h.Service.DeleteURLs(context.Background(), userID.(string), data)
 
 	ctx.AbortWithStatus(http.StatusAccepted)
 }

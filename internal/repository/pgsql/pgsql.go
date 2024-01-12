@@ -180,7 +180,7 @@ func (s *StoreDB) GetAllURLs(ctx context.Context, userID string) ([]model.UserDa
 	return data, nil
 }
 
-func (s *StoreDB) DeleteURLs(ctx context.Context, data []string) {
+func (s *StoreDB) DeleteURLs(ctx context.Context, userID string, data []string) {
 	tx, err := s.DB.Begin(ctx)
 	if err != nil {
 		log.Printf("error, transaction begin: %v", err)
@@ -201,7 +201,6 @@ func (s *StoreDB) DeleteURLs(ctx context.Context, data []string) {
 	batch := &pgx.Batch{}
 
 	for _, v := range data {
-		userID := ctx.Value(model.KeyUserID("userID"))
 		batch.Queue("UPDATE urls (isDeleted) = true WHERE userID = $1 AND shortURL = $2", userID, v)
 	}
 
