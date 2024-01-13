@@ -102,20 +102,19 @@ func (s *StoreDB) CreateShortURL(ctx context.Context, originalURL, shortURL stri
 	return id, cerror.ErrAlreadyExist
 }
 
-func (s *StoreDB) GetOriginalURL(ctx context.Context, shortURL string) (string, bool, error) {
+func (s *StoreDB) GetOriginalURL(ctx context.Context, shortURL string) (string, error) {
 	var url string
-	var isDeleted bool
 
 	query := `SELECT originalURL, isDeleted from urls WHERE shortURL = $1`
 
 	row := s.DB.QueryRow(ctx, query, shortURL)
 
-	err := row.Scan(&url, &isDeleted)
+	err := row.Scan(&url)
 	if err != nil {
-		return "", isDeleted, fmt.Errorf("error: db query: %w", err)
+		return "", fmt.Errorf("error: db query: %w", err)
 	}
 
-	return url, isDeleted, nil
+	return url, cerror.ErrIsDeleted
 }
 
 func (s *StoreDB) CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error) {
@@ -165,6 +164,7 @@ func (s *StoreDB) GetAllURLs(ctx context.Context, userID string) ([]model.UserDa
 	if err != nil {
 		return nil, fmt.Errorf("query :%w", err)
 	}
+	defer rows.Close()
 
 	var data []model.UserData
 	for rows.Next() {
@@ -184,6 +184,7 @@ func (s *StoreDB) DeleteURLs(ctx context.Context, userID string, data []string) 
 	tx, err := s.DB.Begin(ctx)
 	if err != nil {
 		log.Printf("error, transaction begin: %v", err)
+		return
 	}
 	defer func() {
 		if err != nil {

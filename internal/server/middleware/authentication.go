@@ -22,6 +22,10 @@ func Authentication() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userToken, err := ctx.Cookie("UserToken")
 		if err != nil {
+			if !errors.Is(err, http.ErrNoCookie) {
+				ctx.AbortWithStatus(http.StatusInternalServerError)
+			}
+
 			errToken := setToken(ctx)
 			if errToken != nil {
 				ctx.AbortWithStatus(http.StatusInternalServerError)
@@ -46,7 +50,7 @@ func Authentication() gin.HandlerFunc {
 }
 
 func setToken(ctx *gin.Context) error {
-	token, userID, err := CreateToken()
+	token, userID, err := createToken()
 	if err != nil {
 		return err
 	}
@@ -57,7 +61,7 @@ func setToken(ctx *gin.Context) error {
 	return nil
 }
 
-func CreateToken() (string, string, error) {
+func createToken() (string, string, error) {
 	userID := uuid.New().String()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{

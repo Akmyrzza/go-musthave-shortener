@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/akmyrzza/go-musthave-shortener/internal/cerror"
 	"github.com/akmyrzza/go-musthave-shortener/internal/model"
@@ -16,7 +17,7 @@ import (
 
 type ServiceURL interface {
 	CreateShortURL(ctx context.Context, originalURL string) (string, error)
-	GetOriginalURL(ctx context.Context, shortURL string) (string, bool, error)
+	GetOriginalURL(ctx context.Context, shortURL string) (string, error)
 	Ping(ctx context.Context) error
 	CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error)
 	GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error)
@@ -41,7 +42,11 @@ func (h *Handler) CreateShortURL(ctx *gin.Context) {
 		userID = ""
 	}
 
-	user := userID.(string)
+	user, ok := userID.(string)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+	}
+
 	newContext := context.WithValue(ctx.Request.Context(), model.KeyUserID("userID"), user)
 
 	reqBody, err := io.ReadAll(ctx.Request.Body)
@@ -79,14 +84,13 @@ func (h *Handler) GetOriginalURL(ctx *gin.Context) {
 		return
 	}
 
-	originalURL, isDeleted, err := h.Service.GetOriginalURL(ctx.Request.Context(), id)
+	originalURL, err := h.Service.GetOriginalURL(ctx.Request.Context(), id)
 	if err != nil {
+		if errors.Is(err, cerror.ErrIsDeleted) {
+			ctx.AbortWithStatus(http.StatusGone)
+		}
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
-	}
-
-	if isDeleted {
-		ctx.AbortWithStatus(http.StatusGone)
 	}
 
 	ctx.Header("Location", originalURL)
@@ -185,15 +189,26 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 }
 
 func (h *Handler) GetAllURLs(ctx *gin.Context) {
-	newUser, exists := ctx.Get("newUser")
-	if exists && newUser.(bool) {
+	user, exists := ctx.Get("newUser")
+	newUser, ok := user.(bool)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+	}
+
+	if exists && newUser {
 		ctx.JSON(http.StatusUnauthorized, nil)
 	}
 
 	userID, _ := ctx.Get("userID")
-	data, err := h.Service.GetAllURLs(ctx.Request.Context(), userID.(string))
+	userIDString, ok := userID.(string)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+	}
+
+	data, err := h.Service.GetAllURLs(ctx.Request.Context(), userIDString)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err)
+		log.Printf("get all urls error: %v\n", err)
+		ctx.JSON(http.StatusInternalServerError, nil)
 		return
 	}
 
@@ -222,7 +237,10 @@ func (h *Handler) DeleteURLs(ctx *gin.Context) {
 	}
 
 	userID, _ := ctx.Get("userID")
-	fmt.Println(userID)
+	userIDString, ok := userID.(string)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+	}
 
 	reqBody, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
@@ -236,7 +254,7 @@ func (h *Handler) DeleteURLs(ctx *gin.Context) {
 		return
 	}
 
-	h.Service.DeleteURLs(context.Background(), userID.(string), data)
+	h.Service.DeleteURLs(context.Background(), userIDString, data)
 
 	ctx.AbortWithStatus(http.StatusAccepted)
 }

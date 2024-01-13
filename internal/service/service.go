@@ -14,7 +14,7 @@ var RandLength = 16
 
 type Repository interface {
 	CreateShortURL(ctx context.Context, shortURL, originalURL string) (string, error)
-	GetOriginalURL(ctx context.Context, originalURL string) (string, bool, error)
+	GetOriginalURL(ctx context.Context, originalURL string) (string, error)
 	Ping(ctx context.Context) error
 	CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error)
 	GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error)
@@ -43,9 +43,9 @@ func (s *ServiceURL) CreateShortURL(ctx context.Context, originalURL string) (st
 	return id, nil
 }
 
-func (s *ServiceURL) GetOriginalURL(ctx context.Context, shortURL string) (string, bool, error) {
-	originalURL, isDeleted, ok := s.Repository.GetOriginalURL(ctx, shortURL)
-	return originalURL, isDeleted, ok
+func (s *ServiceURL) GetOriginalURL(ctx context.Context, shortURL string) (string, error) {
+	originalURL, ok := s.Repository.GetOriginalURL(ctx, shortURL)
+	return originalURL, ok
 }
 
 func (s *ServiceURL) Ping(ctx context.Context) error {
