@@ -104,17 +104,22 @@ func (s *StoreDB) CreateShortURL(ctx context.Context, originalURL, shortURL stri
 
 func (s *StoreDB) GetOriginalURL(ctx context.Context, shortURL string) (string, error) {
 	var url string
+	var isDeleted bool
 
 	query := `SELECT originalURL, isDeleted from urls WHERE shortURL = $1`
 
 	row := s.DB.QueryRow(ctx, query, shortURL)
 
-	err := row.Scan(&url)
+	err := row.Scan(&url, &isDeleted)
 	if err != nil {
 		return "", fmt.Errorf("error: db query: %w", err)
 	}
 
-	return url, cerror.ErrIsDeleted
+	if isDeleted {
+		return url, cerror.ErrIsDeleted
+	}
+
+	return url, nil
 }
 
 func (s *StoreDB) CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]model.ReqURL, error) {
