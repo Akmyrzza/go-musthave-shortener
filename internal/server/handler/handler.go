@@ -194,14 +194,11 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 }
 
 func (h *Handler) GetAllURLs(ctx *gin.Context) {
-	user, exists := ctx.Get("newUser")
-	newUser, ok := user.(bool)
-	if !ok {
-		ctx.AbortWithStatus(http.StatusInternalServerError)
-	}
+	newUser, exists := ctx.Get("newUser")
 
-	if exists && newUser {
-		ctx.JSON(http.StatusUnauthorized, nil)
+	_, ok := newUser.(bool)
+	if ok && exists {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
 	}
 
 	userID, _ := ctx.Get("userID")
