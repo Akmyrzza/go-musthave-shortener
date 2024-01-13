@@ -22,6 +22,10 @@ func Authentication() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userToken, err := ctx.Cookie("UserToken")
 		if err != nil {
+			if !errors.Is(err, http.ErrNoCookie) {
+				ctx.AbortWithStatus(http.StatusInternalServerError)
+			}
+
 			errToken := setToken(ctx)
 			if errToken != nil {
 				ctx.AbortWithStatus(http.StatusInternalServerError)
