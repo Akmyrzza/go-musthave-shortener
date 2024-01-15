@@ -29,7 +29,6 @@ func InitDatabase(DatabasePath string) (service.Repository, error) {
 		return nil, errors.New("error database path empty")
 	}
 
-	//db, err := sql.Open("pgx", DatabasePath)
 	db, err := pgxpool.New(context.Background(), DatabasePath)
 	if err != nil {
 		return nil, fmt.Errorf("error opening db: %w", err)
@@ -86,13 +85,13 @@ func (s *StoreDB) CreateShortURL(ctx context.Context, originalURL, shortURL stri
 		}
 
 	}()
-
 	queryGet := `SELECT shortURL FROM urls WHERE originalURL = $1`
 	result := tx.QueryRow(ctx, queryGet, originalURL)
 	if err := result.Scan(&id); err != nil {
 		if err == pgx.ErrNoRows {
-			query := `INSERT INTO urls (originalURL, shortURL) VALUES ($1, $2)`
-			_, err := tx.Exec(ctx, query, originalURL, shortURL)
+			query := `INSERT INTO urls (originalURL, shortURL, userID) VALUES ($1, $2, $3)`
+			userID := ctx.Value(model.KeyUserID("userID"))
+			_, err := tx.Exec(ctx, query, originalURL, shortURL, userID)
 			if err != nil {
 				return "", fmt.Errorf("error: db query exec: %w", err)
 			}
@@ -105,14 +104,19 @@ func (s *StoreDB) CreateShortURL(ctx context.Context, originalURL, shortURL stri
 
 func (s *StoreDB) GetOriginalURL(ctx context.Context, shortURL string) (string, error) {
 	var url string
+	var isDeleted bool
 
-	query := `SELECT originalURL from urls WHERE shortURL = $1`
+	query := `SELECT originalURL, isDeleted from urls WHERE shortURL = $1`
 
 	row := s.DB.QueryRow(ctx, query, shortURL)
 
-	err := row.Scan(&url)
+	err := row.Scan(&url, &isDeleted)
 	if err != nil {
 		return "", fmt.Errorf("error: db query: %w", err)
+	}
+
+	if isDeleted {
+		return url, cerror.ErrIsDeleted
 	}
 
 	return url, nil
@@ -139,7 +143,8 @@ func (s *StoreDB) CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]m
 	batch := &pgx.Batch{}
 
 	for i, v := range urls {
-		batch.Queue("INSERT INTO urls (originalURL, shortURL) VALUES($1, $2)", v.OriginalURL, v.ShortURL)
+		userID := ctx.Value(model.KeyUserID("userID"))
+		batch.Queue("INSERT INTO urls (originalURL, shortURL, userID) VALUES($1, $2, $3)", v.OriginalURL, v.ShortURL, userID)
 		urls[i].OriginalURL = ""
 	}
 
@@ -156,4 +161,64 @@ func (s *StoreDB) CreateShortURLs(ctx context.Context, urls []model.ReqURL) ([]m
 	}
 
 	return urls, nil
+}
+
+func (s *StoreDB) GetAllURLs(ctx context.Context, userID string) ([]model.UserData, error) {
+	query := `SELECT shortURL, originalURL from urls WHERE userID = $1`
+	rows, err := s.DB.Query(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("query :%w", err)
+	}
+	defer rows.Close()
+
+	var data []model.UserData
+	for rows.Next() {
+		var row model.UserData
+		err := rows.Scan(&row.ShortURL, &row.OriginalURL)
+		if err != nil {
+			return nil, fmt.Errorf("scanning data: %w", err)
+		}
+
+		data = append(data, row)
+	}
+
+	return data, nil
+}
+
+func (s *StoreDB) DeleteURLs(ctx context.Context, userID string, data []string) {
+	tx, err := s.DB.Begin(ctx)
+	if err != nil {
+		log.Printf("error, transaction begin: %v", err)
+		return
+	}
+	defer func() {
+		if err != nil {
+			if rbErr := tx.Rollback(ctx); rbErr != nil {
+				log.Printf("error rollback: %v", rbErr)
+			}
+		} else {
+			if cmErr := tx.Commit(ctx); cmErr != nil {
+				log.Printf("error commit: %v", cmErr)
+			}
+		}
+
+	}()
+
+	batch := &pgx.Batch{}
+
+	for _, v := range data {
+		batch.Queue("UPDATE urls SET isDeleted = true WHERE userID = $1 AND shortURL = $2", userID, v)
+	}
+
+	br := tx.SendBatch(ctx, batch)
+	defer func() {
+		if err := br.Close(); err != nil {
+			log.Printf("error batch close: %d", err)
+		}
+	}()
+
+	_, err = br.Exec()
+	if err != nil {
+		log.Printf("batch execution error: %v", err)
+	}
 }
