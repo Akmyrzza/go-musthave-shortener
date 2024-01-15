@@ -200,8 +200,8 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 func (h *Handler) GetAllURLs(ctx *gin.Context) {
 	newUser, exists := ctx.Get("newUser")
 
-	_, ok := newUser.(bool)
-	if ok && exists {
+	user, ok := newUser.(bool)
+	if user && ok && exists {
 		log.Println("error get all urls: unauthorized")
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
