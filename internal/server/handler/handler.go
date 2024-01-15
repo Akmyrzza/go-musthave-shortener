@@ -44,7 +44,9 @@ func (h *Handler) CreateShortURL(ctx *gin.Context) {
 
 	user, ok := userID.(string)
 	if !ok {
+		log.Println("error create short url : type assertion error")
 		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
 	}
 
 	newContext := context.WithValue(ctx.Request.Context(), model.KeyUserID("userID"), user)
@@ -154,7 +156,9 @@ func (h *Handler) CreateShortURLs(ctx *gin.Context) {
 	}
 	userIDString, ok := userID.(string)
 	if !ok {
+		log.Println("error create short urls : type assertion error")
 		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
 	}
 
 	newContext := context.WithValue(ctx.Request.Context(), model.KeyUserID("userID"), userIDString)
@@ -198,13 +202,17 @@ func (h *Handler) GetAllURLs(ctx *gin.Context) {
 
 	_, ok := newUser.(bool)
 	if ok && exists {
+		log.Println("error get all urls: unauthorized")
 		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
 	}
 
 	userID, _ := ctx.Get("userID")
 	userIDString, ok := userID.(string)
 	if !ok {
+		log.Println("error get all urls : type assertion error")
 		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
 	}
 
 	data, err := h.Service.GetAllURLs(ctx.Request.Context(), userIDString)
@@ -235,13 +243,17 @@ func (h *Handler) GetAllURLs(ctx *gin.Context) {
 func (h *Handler) DeleteURLs(ctx *gin.Context) {
 	newUser, exists := ctx.Get("newUser")
 	if exists && newUser.(bool) {
-		ctx.JSON(http.StatusUnauthorized, nil)
+		log.Println("error delete urls: unauthorized")
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
 	}
 
 	userID, _ := ctx.Get("userID")
 	userIDString, ok := userID.(string)
 	if !ok {
+		log.Println("error delete urls: type assertion error")
 		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
 	}
 
 	reqBody, err := io.ReadAll(ctx.Request.Body)

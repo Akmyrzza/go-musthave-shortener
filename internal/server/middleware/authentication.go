@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
+	"log"
 	"net/http"
 	"time"
 )
@@ -23,12 +24,16 @@ func Authentication() gin.HandlerFunc {
 		userToken, err := ctx.Cookie("UserToken")
 		if err != nil {
 			if !errors.Is(err, http.ErrNoCookie) {
+				log.Printf("authorization error: %v", err)
 				ctx.AbortWithStatus(http.StatusInternalServerError)
+				return
 			}
 
 			errToken := setToken(ctx)
 			if errToken != nil {
+				log.Printf("authorization error: %v", errToken)
 				ctx.AbortWithStatus(http.StatusInternalServerError)
+				return
 			}
 			return
 		}
@@ -37,11 +42,14 @@ func Authentication() gin.HandlerFunc {
 		if err != nil {
 			if !errors.Is(err, jwt.ErrTokenNotValidYet) {
 				ctx.AbortWithStatus(http.StatusUnauthorized)
+				return
 			}
 
 			errToken := setToken(ctx)
 			if errToken != nil {
+				log.Printf("authorization error: %v", errToken)
 				ctx.AbortWithStatus(http.StatusInternalServerError)
+				return
 			}
 		}
 
